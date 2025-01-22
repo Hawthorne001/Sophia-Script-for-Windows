@@ -29,6 +29,7 @@ Move-Item @Parameters
 Remove-Item -Path "Scripts\LGPO_30", "Scripts\LGPO.zip"  -Recurse -Force
 
 # Download Microsoft.Windows.SDK.NET.dll & WinRT.Runtime.dll
+# https://www.nuget.org/packages/Microsoft.Windows.SDK.NET.Ref
 $Parameters = @{
 	Uri             = "https://www.nuget.org/api/v2/package/Microsoft.Windows.SDK.NET.Ref"
 	OutFile         = "Scripts\microsoft.windows.sdk.net.ref.zip"
@@ -39,6 +40,6 @@ Invoke-RestMethod @Parameters
 # Extract Microsoft.Windows.SDK.NET.dll & WinRT.Runtime.dll from archive
 Add-Type -Assembly System.IO.Compression.FileSystem
 $ZIP = [IO.Compression.ZipFile]::OpenRead("Scripts\microsoft.windows.sdk.net.ref.zip")
-$Entries = $ZIP.Entries | Where-Object -FilterScript {($_.FullName -eq "lib/net6.0/Microsoft.Windows.SDK.NET.dll") -or ($_.FullName -eq "lib/net6.0/WinRT.Runtime.dll")}
+$Entries = $ZIP.Entries | Where-Object -FilterScript {($_.FullName -eq "lib/net8.0/Microsoft.Windows.SDK.NET.dll") -or ($_.FullName -eq "lib/net8.0/WinRT.Runtime.dll")}
 $Entries | ForEach-Object -Process {[IO.Compression.ZipFileExtensions]::ExtractToFile($_, "Scripts\$($_.Name)", $true)}
 $ZIP.Dispose()

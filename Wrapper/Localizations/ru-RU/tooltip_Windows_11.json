@@ -245,15 +245,29 @@
   },
   {
     "Region": "Privacy & Telemetry",
-    "Function": "BrowsingHistory",
+    "Function": "StartRecommendationsTips",
     "Arg": {
       "Zero": {
         "Tag": "Hide",
-        "ToolTip": "Не показать веб-сайты из журнала браузера в меню \"Пуск\"."
+        "ToolTip": "Не показать рекомендации с советами, сочетаниями клавиш, новыми приложениями и т. д. в меню \"Пуск\"."
       },
       "One": {
         "Tag": "Show",
-        "ToolTip": "Показать веб-сайты из журнала браузера в меню \"Пуск\" (значение по умолчанию)."
+        "ToolTip": "Показать рекомендации с советами, сочетаниями клавиш, новыми приложениями и т. д. в меню \"Пуск\" (значение по умолчанию)."
+      }
+    }
+  },
+  {
+    "Region": "Privacy & Telemetry",
+    "Function": "StartAccountNotifications",
+    "Arg": {
+      "Zero": {
+        "Tag": "Hide",
+        "ToolTip": "Не показывать в меню \"Пуск\" уведомления, связанные с учетной записью Microsoft."
+      },
+      "One": {
+        "Tag": "Show",
+        "ToolTip": "Переодически показывать в меню \"Пуск\" уведомления, связанные с учетной записью Microsoft (значение по умолчанию)."
       }
     }
   },
@@ -505,20 +519,6 @@
   },
   {
     "Region": "UI & Personalization",
-    "Function": "CopilotButton",
-    "Arg": {
-      "Zero": {
-        "Tag": "Hide",
-        "ToolTip": "Скрыть кнопку Copilot с панели задач."
-      },
-      "One": {
-        "Tag": "Show",
-        "ToolTip": "Отобразить кнопку Copilot на панели задач (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "UI & Personalization",
     "Function": "TaskViewButton",
     "Arg": {
       "Zero": {
@@ -528,20 +528,6 @@
       "One": {
         "Tag": "Show",
         "ToolTip": "Отобразить кнопку \"Представление задач\" на панели задач (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "UI & Personalization",
-    "Function": "PreventTeamsInstallation",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable",
-        "ToolTip": "Скрыть кнопку чата (Microsoft Teams) с панели задач и запретить установку Microsoft Teams для новых пользователей."
-      },
-      "One": {
-        "Tag": "Disable",
-        "ToolTip": "Отобразить кнопку чата (Microsoft Teams) на панели задач и убрать блокировку на устанвоку Microsoft Teams для новых пользователей (значение по умолчанию)."
       }
     }
   },
@@ -580,15 +566,33 @@
   {
     "Region": "UI & Personalization",
     "Function": "UnpinTaskbarShortcuts -Shortcuts",
-    "ToolTip": "Открепить ярлыки \"Microsoft Edge\", \"Microsoft Store\" от панели задач",
+    "ToolTip": "Открепить ярлыки Microsoft Edge, Microsoft Store и Outlook от панели задач.",
     "Arg": {
       "Zero": {
         "Tag": "Edge",
-        "ToolTip": "Открепить ярлык \"Microsoft Edge\" от панели задач."
+        "ToolTip": "Открепить ярлык Microsoft Edge от панели задач."
       },
       "One": {
         "Tag": "Store",
-        "ToolTip": "Открепить ярлык \"Microsoft Store\" от панели задач."
+        "ToolTip": "Открепить ярлык Microsoft Store от панели задач."
+      },
+      "Two": {
+        "Tag": "Outlook",
+        "ToolTip": "Открепить ярлык Outlook от панели задач."
+      }
+    }
+  },
+  {
+    "Region": "UI & Personalization",
+    "Function": "TaskbarEndTask",
+    "Arg": {
+      "Zero": {
+        "Tag": "Enable",
+        "ToolTip": "Включить завершение задачи на панели задач правой кнопкой мыши."
+      },
+      "One": {
+        "Tag": "Disable",
+        "ToolTip": "Выключить завершение задачи на панели задач правой кнопкой мыши (default value)."
       }
     }
   },
@@ -736,7 +740,7 @@
       },
       "Two": {
         "Tag": "Dark",
-        "ToolTip": "Скачать и установить бесплатные темные курсоры \"Windows 11 Cursors Concept v2\" от Jepri Creations"
+        "ToolTip": "Скачать и установить бесплатные темные курсоры \"Windows 11 Cursors Concept v2\" от Jepri Creations."
       }
     }
   },
@@ -765,6 +769,20 @@
       "One": {
         "Tag": "Enable",
         "ToolTip": "Развернуть до открытой папки область навигации."
+      }
+    }
+  },
+  {
+    "Region": "UI & Personalization",
+    "Function": "StartRecommendedSection",
+    "Arg": {
+      "Zero": {
+        "Tag": "Hide",
+        "ToolTip": "Удалить раздел \"Рекомендуем\" в меню \"Пуск\". Применимо только к редакциям Enterprise и Education, но не к IoT Enterprise."
+      },
+      "One": {
+        "Tag": "Show",
+        "ToolTip": "Показывать раздел \"Рекомендуем\" в меню \"Пуск\". Применимо только к редакциям Enterprise и Education, но не к IoT Enterprise."
       }
     }
   },
@@ -808,34 +826,6 @@
   },
   {
     "Region": "System",
-    "Function": "StorageSenseFrequency",
-    "Arg": {
-      "Zero": {
-        "Tag": "Month",
-        "ToolTip": "Запускать Контроль памяти каждый месяц."
-      },
-      "One": {
-        "Tag": "Default",
-        "ToolTip": "Запускать Контроль памяти, когда остается мало место на диске (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "StorageSenseTempFiles",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable",
-        "ToolTip": "Автоматически очищать временные файлы системы и приложений (значение по умолчанию)."
-      },
-      "One": {
-        "Tag": "Disable",
-        "ToolTip": "Не очищать временные файлы системы и приложений."
-      }
-    }
-  },
-  {
-    "Region": "System",
     "Function": "Hibernation",
     "Arg": {
       "Zero": {
@@ -845,20 +835,6 @@
       "One": {
         "Tag": "Enable",
         "ToolTip": "Включить режим гибернации (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "TempFolder",
-    "Arg": {
-      "Zero": {
-        "Tag": "SystemDrive",
-        "ToolTip": "Изменить путь переменной среды для %TEMP% на %SystemDrive%\\Temp."
-      },
-      "One": {
-        "Tag": "Default",
-        "ToolTip": "Изменить путь переменной среды для %TEMP% на %LOCALAPPDATA%\\Temp (значение по умолчанию)."
       }
     }
   },
@@ -901,20 +877,6 @@
       "One": {
         "Tag": "Default",
         "ToolTip": "Настройка уведомления об изменении параметров компьютера: уведомлять меня только при попытках приложений внести изменения в компьютер (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "MappedDrivesAppElevatedAccess",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable",
-        "ToolTip": "Включить доступ к сетевым дискам при включенном режиме одобрения администратором при доступе из программ, запущенных с повышенными правами."
-      },
-      "One": {
-        "Tag": "Disable",
-        "ToolTip": "Выключить доступ к сетевым дискам при включенном режиме одобрения администратором при доступе из программ, запущенных с повышенными правами (значение по умолчанию)."
       }
     }
   },
@@ -990,6 +952,62 @@
   },
   {
     "Region": "System",
+    "Function": "RestartNotification",
+    "Arg": {
+      "Zero": {
+        "Tag": "Show",
+        "ToolTip": "Уведомлять меня о необходимости перезагрузки для завершения обновления."
+      },
+      "One": {
+        "Tag": "Hide",
+        "ToolTip": "Не yведомлять меня о необходимости перезагрузки для завершения обновления (значение по умолчанию)."
+      }
+    }
+  },
+  {
+    "Region": "System",
+    "Function": "RestartDeviceAfterUpdate",
+    "Arg": {
+      "Zero": {
+        "Tag": "Enable",
+        "ToolTip": "Перезапустить устройство как можно быстрее, чтобы завершить обновление."
+      },
+      "One": {
+        "Tag": "Disable",
+        "ToolTip": "Не перезапускать устройство как можно быстрее, чтобы завершить обновление (значение по умолчанию)."
+      }
+    }
+  },
+  {
+    "Region": "System",
+    "Function": "ActiveHours",
+    "Arg": {
+      "Zero": {
+        "Tag": "Automatically",
+        "ToolTip": "Автоматически изменять период активности для этого устройства на основе действий."
+      },
+      "One": {
+        "Tag": "Manually",
+        "ToolTip": "Вручную изменять период активности для этого устройства на основе действий (значение по умолчанию)."
+      }
+    }
+  },
+  {
+    "Region": "System",
+    "Function": "WindowsLatestUpdate",
+    "Arg": {
+      "Zero": {
+        "Tag": "Disable",
+        "ToolTip": "Не получать последние обновления, как только они будут доступны (значение по умолчанию)."
+      },
+      "One": {
+        "Tag": "Enable",
+        "ToolTip": "Получайте последние обновления, как только они будут доступны."
+      }
+    }
+  },
+  {
+    "Region": "System",
     "Function": "PowerPlan",
     "Arg": {
       "Zero": {
@@ -1013,24 +1031,6 @@
       "One": {
         "Tag": "Enable",
         "ToolTip": "Разрешить отключение всех сетевых адаптеров для экономии энергии (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "IPv6Component",
-    "Arg": {
-      "Zero": {
-        "Tag": "Disable",
-        "ToolTip": "Выключить IP версии 6 (TCP/IPv6). Перед выполнением функции будет проведена проверка: поддерживает ли ваш провайдер IPv6, используя ресурс https://ipify.org."
-      },
-      "One": {
-        "Tag": "Enable",
-        "ToolTip": "Включить IP версии 6 (TCP/IPv6) (значение по умолчанию). Перед выполнением функции будет проведена проверка: поддерживает ли ваш провайдер IPv6, используя ресурс https://ipify.org."
-      },
-      "Two": {
-        "Tag": "PreferIPv4overIPv6",
-        "ToolTip": "Включить IP версии 6 (TCP/IPv6). Предпочтение IPv4 перед IPv6. Перед выполнением функции будет проведена проверка: поддерживает ли ваш провайдер IPv6, используя ресурс https://ipify.org"
       }
     }
   },
@@ -1250,62 +1250,6 @@
   },
   {
     "Region": "System",
-    "Function": "RestartNotification",
-    "Arg": {
-      "Zero": {
-        "Tag": "Show",
-        "ToolTip": "Уведомлять меня о необходимости перезагрузки для завершения обновления."
-      },
-      "One": {
-        "Tag": "Hide",
-        "ToolTip": "Не yведомлять меня о необходимости перезагрузки для завершения обновления (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "RestartDeviceAfterUpdate",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable",
-        "ToolTip": "Перезапустить устройство как можно быстрее, чтобы завершить обновление."
-      },
-      "One": {
-        "Tag": "Disable",
-        "ToolTip": "Не перезапускать устройство как можно быстрее, чтобы завершить обновление (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "ActiveHours",
-    "Arg": {
-      "Zero": {
-        "Tag": "Automatically",
-        "ToolTip": "Автоматически изменять период активности для этого устройства на основе действий."
-      },
-      "One": {
-        "Tag": "Manually",
-        "ToolTip": "Вручную изменять период активности для этого устройства на основе действий (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "WindowsLatestUpdate",
-    "Arg": {
-      "Zero": {
-        "Tag": "Disable",
-        "ToolTip": "Не получать последние обновления, как только они будут доступны (значение по умолчанию)."
-      },
-      "One": {
-        "Tag": "Enable",
-        "ToolTip": "Получайте последние обновления, как только они будут доступны."
-      }
-    }
-  },
-  {
-    "Region": "System",
     "Function": "Set-Association",
     "Arg": {
       "Zero": {
@@ -1362,30 +1306,30 @@
   },
   {
     "Region": "System",
-    "Function": "InstallVCRedist",
+    "Function": "Install-VCRedist -Redistributables",
     "Arg": {
       "Zero": {
-        "Tag": "",
-        "ToolTip": "Установить последнюю версию распространяемых пакетов Microsoft Visual C++ 2015–2022 (x86/x64)."
+        "Tag": "2015_2022_x86",
+        "ToolTip": "Установить последнюю версию распространяемых пакетов Microsoft Visual C++ 2015–2022 x86."
+      },
+      "One": {
+        "Tag": "2015_2022_x64",
+        "ToolTip": "Установить последнюю версию распространяемых пакетов Microsoft Visual C++ 2015–2022 x64."
       }
     }
   },
   {
     "Region": "System",
-    "Function": "InstallDotNetRuntimes -Runtimes",
-    "ToolTip": "Установить последнюю версию .NET Desktop Runtime 6, 7, 8 (x86/x64).",
+    "Function": "Install-DotNetRuntimes -Runtimes",
+    "ToolTip": "Установить последнюю версию .NET Desktop Runtime 8, 9 x64.",
     "Arg": {
       "Zero": {
-        "Tag": "NET6x64",
-        "ToolTip": ".NET Desktop Runtime 6 x64."
+        "Tag": "NET9x64",
+        "ToolTip": ".NET Desktop Runtime 8 x64."
       },
       "One": {
-        "Tag": "NET7x64",
-        "ToolTip": ".NET Desktop Runtime 7 x64."
-      },
-      "Two": {
-        "Tag": "NET8x64",
-        "ToolTip": ".NET Desktop Runtime 8 x64."
+        "Tag": "NET9x64",
+        "ToolTip": ".NET Desktop Runtime 9 x64."
       }
     }
   },
@@ -1405,16 +1349,6 @@
   },
   {
     "Region": "System",
-    "Function": "Install-WSA",
-    "Arg": {
-      "Zero": {
-        "Tag": "",
-        "ToolTip": "Включить все необходимые зависимости (может потребоваться перезагрузка) и открыть страницу WSA в Microsoft Store, чтобы вручную установить Windows Subsystem for Android™ with Amazon Appstore."
-      }
-    }
-  },
-  {
-    "Region": "System",
     "Function": "PreventEdgeShortcutCreation",
     "Arg": {
       "Zero": {
@@ -1424,20 +1358,6 @@
       "One": {
         "Tag": "Disable",
         "ToolTip": "Не предотвращать создание ярлыков на рабочем столе при обновлении Microsoft Edge (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "SATADrivesRemovableMedia",
-    "Arg": {
-      "Zero": {
-        "Tag": "Disable",
-        "ToolTip": "Запретить отображать все внутренние SATA-диски как съемные носители в области уведомлений на панели задач."
-      },
-      "One": {
-        "Tag": "Default",
-        "ToolTip": "Отображать все внутренние SATA-диски как съемные носители в области уведомлений на панели задач (значение по умолчанию)."
       }
     }
   },
@@ -1462,16 +1382,6 @@
       "Zero": {
         "Tag": "",
         "ToolTip": "Установить подсистему Windows для Linux (WSL), последний пакет обновления ядра Linux и дистрибутив Linux, используя всплывающую форму. Параметр \"При обновлении Windows получать обновления для других продуктов Майкрософт\" будет включен автоматически в Центре обновлении Windows, чтобы получать обновления ядра."
-      }
-    }
-  },
-  {
-    "Region": "Start menu",
-    "Function": "UnpinAllStartApps",
-    "Arg": {
-      "Zero": {
-        "Tag": "",
-        "ToolTip": "Открепить все приложения от начального экрана."
       }
     }
   },
@@ -1515,16 +1425,6 @@
   },
   {
     "Region": "UWP apps",
-    "Function": "RestoreUWPApps",
-    "Arg": {
-      "Zero": {
-        "Tag": "",
-        "ToolTip": "Восстановить стандартные UWP-приложения, используя всплывающее диалоговое окно. UWP-приложения могут быть восстановлены, только если они были удалены для текущего пользователя."
-      }
-    }
-  },
-  {
-    "Region": "UWP apps",
     "Function": "CortanaAutostart",
     "Arg": {
       "Zero": {
@@ -1534,20 +1434,6 @@
       "One": {
         "Tag": "Enable",
         "ToolTip": "Включить автозагрузку Кортана (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "UWP apps",
-    "Function": "TeamsAutostart",
-    "Arg": {
-      "Zero": {
-        "Tag": "Disable",
-        "ToolTip": "Выключить автозагрузку Microsoft Teams."
-      },
-      "One": {
-        "Tag": "Enable",
-        "ToolTip": "Включить автозагрузку Microsoft Teams (значение по умолчанию)."
       }
     }
   },
@@ -1609,7 +1495,7 @@
     "Arg": {
       "Zero": {
         "Tag": "Register",
-        "ToolTip": "Создать задание \"Windows Cleanup\" по очистке неиспользуемых файлов и обновлений Windows в Планировщике заданий. Задание выполняется каждые 30 дней. Необходимо включить Windows Script Host для того, чтобы работала функция."
+        "ToolTip": "Создать задания \"Windows Cleanup\" (основное задание) и \"Windows Cleanup Notification\" (задание для создания всплывающего уведомления) по очистке неиспользуемых файлов и обновлений Windows в Планировщике заданий в папке Sophia. Перед началом очистки всплывет нативное уведомление Windows с предложением запустить задание. Задание выполняется каждые 30 дней. Для работы задания необходимо включить Windows Script Host."
       },
       "One": {
         "Tag": "Delete",
@@ -1623,7 +1509,7 @@
     "Arg": {
       "Zero": {
         "Tag": "Register",
-        "ToolTip": "Создать задание \"SoftwareDistribution\" по очистке папки %SystemRoot%\\SoftwareDistribution\\Download в Планировщике заданий. Задание будет ждать, пока служба обновлений Windows не закончит работу. Задание выполняется каждые 90 дней. Необходимо включить Windows Script Host для того, чтобы работала функция."
+        "ToolTip": "Создать задание \"SoftwareDistribution\" по очистке папки %SystemRoot%\\SoftwareDistribution\\Download, куда скачиваются установочные файлы всех обновлений Windows, в папке Sophia в Планировщике заданий. Задание будет ждать, пока служба обновлений Windows не закончит работу. Задача выполняется каждые 90 дней. Необходимо включить Windows Script Host для того, чтобы работала функция."
       },
       "One": {
         "Tag": "Delete",
@@ -1675,6 +1561,20 @@
   },
   {
     "Region": "Microsoft Defender & Security",
+    "Function": "DefenderSandbox",
+    "Arg": {
+      "Zero": {
+        "Tag": "Enable",
+        "ToolTip": "Включить песочницу для Microsoft Defender."
+      },
+      "One": {
+        "Tag": "Disable",
+        "ToolTip": "Выключить песочницу для Microsoft Defender (значение по умолчанию)."
+      }
+    }
+  },
+  {
+    "Region": "Microsoft Defender & Security",
     "Function": "DismissMSAccount",
     "Arg": {
       "Zero": {
@@ -1695,43 +1595,15 @@
   },
   {
     "Region": "Microsoft Defender & Security",
-    "Function": "AuditProcess",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable",
-        "ToolTip": "Включить аудит событий, возникающих при создании или запуске процесса."
-      },
-      "One": {
-        "Tag": "Disable",
-        "ToolTip": "Выключить аудит событий, возникающих при создании или запуске процесса (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "Microsoft Defender & Security",
-    "Function": "CommandLineProcessAudit",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable",
-        "ToolTip": "Включать командную строку в событиях создания процесса. Для того, чтобы работал данный функционал, будет включен аудит событий (AuditProcess -Enable)."
-      },
-      "One": {
-        "Tag": "Disable",
-        "ToolTip": "Не включать командную строку в событиях создания процесса (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "Microsoft Defender & Security",
     "Function": "EventViewerCustomView",
     "Arg": {
       "Zero": {
         "Tag": "Enable",
-        "ToolTip": "Создать настраиваемое представление \"Создание процесса\" в Просмотре событий. Для того, чтобы работал данный функционал, буден включен аудит событий (AuditProcess -Enable) и командной строки (CommandLineProcessAudit -Enable) в событиях создания процесса."
+        "ToolTip": "Создать настраиваемое представление \"Создание процесса\" в Просмотре событий для журналирования запускаемых процессов и их аргументов."
       },
       "One": {
         "Tag": "Disable",
-        "ToolTip": "Удалить настраиваемое представление \"Создание процесса\" в Просмотре событий (значение по умолчанию)."
+        "ToolTip": "Удалить настраиваемое представление \"Создание процесса\" в Просмотре событий для журналирования запускаемых процессов и их аргументов (значение по умолчанию)."
       }
     }
   },
@@ -1811,11 +1683,11 @@
     "Arg": {
       "Zero": {
         "Tag": "Enable",
-        "ToolTip": "Включить Windows Sandbox."
+        "ToolTip": "Включить Windows Sandbox. Применимо только к редакциям Professional, Enterprise и Education."
       },
       "One": {
         "Tag": "Disable",
-        "ToolTip": "Выключить Windows Sandbox (значение по умолчанию)."
+        "ToolTip": "Выключить Windows Sandbox (значение по умолчанию). Применимо только к редакциям Professional, Enterprise и Education."
       }
     }
   },
@@ -1839,7 +1711,7 @@
     "Arg": {
       "Zero": {
         "Tag": "Enable",
-        "ToolTip": "Включить защиту локальной системы безопасности, чтобы предотвратить внедрение кода."
+        "ToolTip": "Включить защиту локальной системы безопасности, чтобы предотвратить внедрение кода, без блокировки UEFI."
       },
       "One": {
         "Tag": "Disable",
@@ -1877,34 +1749,6 @@
   },
   {
     "Region": "Context menu",
-    "Function": "CastToDeviceContext",
-    "Arg": {
-      "Zero": {
-        "Tag": "Hide",
-        "ToolTip": "Скрыть пункт \"Передать на устройство\" из контекстного меню медиа-файлов и папок."
-      },
-      "One": {
-        "Tag": "Show",
-        "ToolTip": "Отобразить пункт \"Передать на устройство\" в контекстном меню медиа-файлов и папок (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "Context menu",
-    "Function": "ShareContext",
-    "Arg": {
-      "Zero": {
-        "Tag": "Hide",
-        "ToolTip": "Скрыть пункт \"Отправить\" (поделиться) из контекстного меню."
-      },
-      "One": {
-        "Tag": "Show",
-        "ToolTip": "Отобразить пункт \"Отправить\" (поделиться) в контекстном меню (значение по умолчанию). Отображение элемента \"Поделиться\" в контекстном меню приведет к отключению проводника из Windows 10."
-      }
-    }
-  },
-  {
-    "Region": "Context menu",
     "Function": "EditWithClipchampContext",
     "Arg": {
       "Zero": {
@@ -1919,6 +1763,34 @@
   },
   {
     "Region": "Context menu",
+    "Function": "EditWithPhotosContext",
+    "Arg": {
+      "Zero": {
+        "Tag": "Hide",
+        "ToolTip": "Скрыть пункт \"Изменить с помощью приложения \"Фотографии\"\" из контекстного меню медиа-файлов."
+      },
+      "One": {
+        "Tag": "Show",
+        "ToolTip": "Отобразить пункт \"Изменить с помощью приложения \"Фотографии\"\" в контекстном меню медиа-файлов (значение по умолчанию)."
+      }
+    }
+  },
+  {
+    "Region": "Context menu",
+    "Function": "EditWithPaintContext",
+    "Arg": {
+      "Zero": {
+        "Tag": "Hide",
+        "ToolTip": "Скрыть пункт \"Изменить с помощью приложения Paint\" из контекстного меню медиа-файлов."
+      },
+      "One": {
+        "Tag": "Show",
+        "ToolTip": "Отобразить пункт \"Изменить с помощью приложения Paint\" в контекстном меню медиа-файлов (значение по умолчанию)."
+      }
+    }
+  },
+  {
+    "Region": "Context menu",
     "Function": "PrintCMDContext",
     "Arg": {
       "Zero": {
@@ -1928,34 +1800,6 @@
       "One": {
         "Tag": "Show",
         "ToolTip": "Отобразить пункт \"Печать\" в контекстном меню .bat и .cmd файлов (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "Context menu",
-    "Function": "IncludeInLibraryContext",
-    "Arg": {
-      "Zero": {
-        "Tag": "Hide",
-        "ToolTip": "Скрыть пункт \"Добавить в библиотеку\" из контекстного меню папок и дисков."
-      },
-      "One": {
-        "Tag": "Show",
-        "ToolTip": "Отобразить пункт \"Добавить в библиотеку\" в контекстном меню папок и дисков (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "Context menu",
-    "Function": "SendToContext",
-    "Arg": {
-      "Zero": {
-        "Tag": "Hide",
-        "ToolTip": "Скрыть пункт \"Отправить\" из контекстного меню папок."
-      },
-      "One": {
-        "Tag": "Show",
-        "ToolTip": "Отобразить пункт \"Отправить\" в контекстном меню папок (значение по умолчанию)."
       }
     }
   },
@@ -2026,20 +1870,6 @@
       "One": {
         "Tag": "Disable",
         "ToolTip": "Не открывать Windows Terminal из контекстного меню от имени администратора по умолчанию (значение по умолчанию)."
-      }
-    }
-  },
-  {
-    "Region": "Context menu",
-    "Function": "Windows10ContextMenu",
-    "Arg": {
-      "Zero": {
-        "Tag": "Disable",
-        "ToolTip": "Отключить стиль контекстного меню из Windows 10 (значение по умолчанию)."
-      },
-      "One": {
-        "Tag": "Enable",
-        "ToolTip": "Включить стиль контекстного меню из Windows 10."
       }
     }
   },

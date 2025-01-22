@@ -5,6 +5,210 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 5.20.1 | 6.8.1 — 19.01.2025
+
+* Added a tutorial video how to run the specific function(s) via `Functions.ps1` script;
+  * <https://github.com/farag2/Sophia-Script-for-Windows?tab=readme-ov-file#how-to-run-the-specific-functions>
+* Updated cursor pack for `Cursor` function up to the latest available version from <https://www.deviantart.com/jepricreations/art/Windows-11-Cursors-Concept-886489356>;
+* Changed names for functions, having added parameter values to choose:
+  * `Install-VCRedist -Redistributables 2015_2022_x86, 2015_2022_x64`
+  * `Install-DotNetRuntimes -Runtimes NET8x64, NET9x64`
+* `StartRecommendedSection` function now supports all Windows editions except `Home` one;
+* `UnpinTaskbarShortcuts` function now supports new `Outlook` argument value;
+* Added `EditWithPaintContext` function for only `Windows 11` to hide/show "Edit with Paint" item from the media files context menu;
+* Minor changes.
+
+Thanks to WindR and homeless
+
+## Wrapper 2.7.8
+
+* Fixed bugs: .NET Runtimes options cutting off.
+
+## 5.20.0 | 6.8.0 — 29.12.2024
+
+***
+
+Happy New Year. Team Sophia wishes you the best in the coming year. Hopefully, in a few months we can release the first public preview of `SophiApp 2.0`. 
+
+![deds](https://github.com/user-attachments/assets/601fd302-92da-4898-80f3-31c8fc324dff)
+
+***
+
+* Code refactoring continues;
+* Changed DNS records for `Comss.one DNS to `195.133.25.16`, `195.133.25.99`. Applicable for Russia only;
+* `StorageSenseTempFiles` & `StorageSenseFrequency` functions merged into one `StorageSense`;
+* Added checkings for `InstallVCRedist` function whether the latest VC Redistributable packages were already installed to skip downloding them;
+* Added checkings for `InstallDotNetRuntimes` function whether the latest .NET 8 and 9 installed;
+  * Moved to .NET 8 & 9. 
+* Now before configuring any functions related function olicies will be reset in order to avoid situations when a user has a blocked UI features due to harmful tweaks usage.
+  * E.g. before `RecycleBinDeleteConfirmation` function will be applied `ConfirmFileDelete` policy will be reset via LGPO.
+* Fixed `UpdateMicrosoftProducts` function for Windows 11;
+  * Please re-apply using this manual: https://github.com/farag2/Sophia-Script-for-Windows?tab=readme-ov-file#how-to-run-the-specific-functions
+* Minor changes;
+* Fixed and improved translations;
+
+Thanks to A5, l1ghtovskiy, DirtBikeChad, and Rahul Setia.
+
+# Wrapper 2.7.7
+
+* Code refactoring;
+* Renamed variable for messagebox saying imported ps1 script needs to be in Sophia Script folder;
+* Fixed LTSC loading differences;
+* Fixed crashing because of StorageSense option, Refactor, CheckFileExists uses entire path internally
+
+## 5.19.3 | 6.7.3 — 28.11.2024
+
+* Code refactoring;
+* Added a fast command to download and expand latest Sophia Script version, depending on which Windows or PowerShell versions are used to
+
+```powershell
+iwr sl.sophia.team -useb | iex
+```
+
+alongside with the current command to download the latest release build
+
+```powershell
+iwr script.sophia.team -useb | iex
+```
+
+* Removed `CopilotButton` and `MappedDrivesAppElevatedAccess` functions as unnecessary ones;
+* Added `TaskbarCombine` to combine taskbar buttons and `ImagesEditContext` to hide the `Edit` item from the images context menu functions for `Windows 10`;
+* Minor changes;
+* Fixed typos.
+
+### Wrapper 2.7.5
+
+The imported .ps1 file must be in Sophia Script folder.
+
+## 5.19.2 | 6.7.2 — 29.10.2024
+
+* [Recorded](https://github.com/farag2/Sophia-Script-for-Windows?tab=readme-ov-file#how-to-use) a visual teaching videos how to run `Sophia Script` for `Windows 10` & `Windows 11`;
+* Fixed `NewsInterests` function for `Windows 10`;
+* Blacklisted [KirbyOS](https://x.com/NPKirbyy) which promises FPS rate increase in games as many similar ones;
+* Improved `NetworkAdaptersSavePower` function not to allow the computer to turn off the network adapters to save power
+* Minor changes;
+* Fixed typos.
+
+## 5.19.1 | 6.7.1 — 20.10.2024
+
+* Removed `IPv6Component` function as an unnecessary one;
+* Formally added support for `Windows 11 IoT Enterprise LTSC 2024`
+  * Closes #591
+* Added `EditWithPhotosContext` for `Windows 11` to hide the "Edit with Photos" item from the media files context menu;
+* Code refactoring;
+* Minor changes.
+
+## 5.19.0 | 6.7.0 — 07.10.2024
+
+* Added Windows 11 Enterprise LTSC 2024 support;
+* Added bypass for UCPD driver restriction in `Set-Association` function while associaing an app with .pdf extention and http/https protocols;
+  * Microsoft has blocked write access to UserChoice key for .pdf extention and http/https protocols with KB5034765 release.
+* Added bypass for UCPD driver restriction in `TaskbarWidgets` function for Windows 11;
+* Added bypass for UCPD driver restriction in `NewsInterests` function for Windows 10;
+* Small improvements for Scheduled tasks. You may re-create them if you wish within `. .\Functions`.
+* Minor changes.
+
+## 5.18.9 | 6.6.9 — 16.08.2024
+
+* Added function `DNS-over-HTTPS for IPv4` for Windows 10
+  * `DNSoverHTTPS -Enable -PrimaryDNS 1.0.0.1 -SecondaryDNS 1.1.1.1`
+  * `DNSoverHTTPS -ComssOneDNS` to use [COMSS.ONE'](https://www.comss.ru) DNS. Applicable for Russia only.
+  * The valid IPv4 addresses: 1.0.0.1, 1.1.1.1, 149.112.112.112, 8.8.4.4, 8.8.8.8, 9.9.9.9
+* Added `TaskbarEndTask` function to add `End task in taskbar by right click`. Applicable for `Windows 11` only.
+* Simplify a little bit all Scheduled Tasks related function.
+  * You may update them by using `. .\Functions` module. Nothing new.
+* Expanded harmful tweakers by adding [xd-AntiSpy](https://github.com/builtbybel/xd-AntiSpy) for letting users remove system UWP components to break Windows in the end (along side with [Winpilot](https://github.com/builtbybel/Winpilot). You're welcome again. Bravo! 👏
+* Improved `RKNBypass` function. Now all browsers will know about a new proxy server isntantly by using [InternetSetOption](https://learn.microsoft.com/en-us/windows/win32/api/wininet/nf-wininet-internetsetoptiona) API.
+* `TaskbarWidgets`' function future is up in the air due to Microsoft has blocked access for editing TaskbarDa key in KB5041585, so technically the function doesn't work throwing `Attempted to perform an unauthorized operation.`
+* Small improvements;
+* Minor changes.
+
+## 5.18.8 | 6.6.8 — 06.07.2024
+
+* Removed `RestoreUWPApps`
+  * It doesn't work at all anymore.
+* Removed `TempFolder` as it makes more harm than good;
+* Fixed `OneDrive -Install -AllUsers` and `Install-WSL` functions;
+* Improved all three scheduled tasks related functions;
+* Improved `WindowsScriptHost -Disable`
+  * Now it checks whether scheduled tasks were created. If so, the function will be skipped to due to they rely on VBS scripts execution.
+* Fixed typos;
+* Minor changes;
+* Thanks to Kudzor.
+
+## 5.18.7 | 6.6.7 — 12.06.2024
+
+* Fixed `CleanupTask -Register` function not working due to a typo;
+  * Please re-create it via invoking `. .\Functions.ps1` (with a dot at the beginning) method.
+* Removed `CommandLineProcessAudit` and `Install-WSA` as WSA support is deprecated;
+* Improved `EventViewerCustomView -Disable` function;
+* Fixed typos;
+* Minor changes;
+* Thanks to @lowl1f3.
+
+### Wrapper 2.7.1
+
+Closed #576
+
+## 5.18.6 | 6.6.6 — 28.05.2024
+
+* Removed `Windows10ContextMenu` (as this was a strange function to make Windows 11 looks like an old OS), `AuditProcess` (as `CommandLineProcessAudit -Enable` contains the same functionality), `BrowsingHistory`  functions for `Windows 11`;
+* Added `StartRecommendationsTips` & `StartAccountNotifications` functions to `Show recommendations for tips, shortcuts, new apps, and more in the Start menu` and `Show Microsoft account-related notifications on Start Menu in the Start menu` respectively;
+* `DefenderSandbox` functions re-added for `Windows 11`;
+* Added `AtlasOS`, which for some reason positions itself as a replacement for Windows (!!!), as a harmful tweaker from another scammers;
+* Other improvements.
+
+> [!IMPORTANT]
+> ![image](https://github.com/farag2/Sophia-Script-for-Windows/assets/10544660/26b8f211-4d5b-4f30-9c35-1944a7edfacc)
+> Happy 6.6.6 version!
+
+## 5.18.5 | 6.6.5 — 14.04.2024
+
+* Removed `ShareContext` & `UnpinAllStartApps` functions for `Windows 11`;
+  * Start icon positions are stored in a binary obfuscated JSON file that changes with every update. `$env:LOCALAPPDATA\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState\start2.bin`, and it's changed with every update;
+  * Take a look at https://gist.github.com/rad1ke/d8c4121931633eca04ca625d09ff1a11#file-windows-11-setup-ps1-L42 if you're interested in the function.
+* Fixed `Cursors` function;
+  * Please re-run it by using `. .\Functions.ps1` module
+* Added a warning for `Set-Association` function: `.pdf` and `http/https` protocols will be skipped;
+  * Microsoft has blocked write access to UserChoice key for .pdf extention and http/https protocols with KB5034765 and KB5034763 for Windows 11 and Windows 10 respectively.
+* `RKNBypass` updated;
+  * Changed URL to `https://p.thenewone.lol:8443/proxy.pac`. Applicable for Russia only.
+* Fixed numerous typos.
+
+## 5.18.4 | 6.6.4 — 07.04.2024
+
+* Fixed script not checking version correctly;
+* Script-wide improved compiling .NET code compatibility when a username has the first capital letter`;
+  * https://github.com/PowerShell/PowerShell/issues/21070
+* Fixed `Cursors` function not extracting files from archives using `%SystemRoot%\System32\tar.exe` when a username has the first capital letter`;
+  * https://github.com/PowerShell/PowerShell/issues/21070
+* Fixed `Set-UserShellFolderLocation -Root` function not checking drives correctly what results in skipping the whole function;
+* Minor changes.
+
+### Wrapper 2.7.0
+
+* Updated colors for each theme and coded more correctly according to industry standards;
+* Clean up code.
+
+## 5.18.3 | 6.6.3 — 01.04.2024
+
+* Removed `RunAsDifferentUserContext`, `EditWithPhotosContext`, `ImagesEditContext` for Windows 10 as unnecessary ones.
+* Fixed `UserFolders` function;
+  * Fixes #561.
+* Removed `NET7x64` argument from `InstallDotNetRuntimes` function as .NET 7 will have EOF status in May;
+* Fixed and improved `Cursors` function;
+* Now it's possible to create any scheduled task even computer name is equal to user name (what's prohibited in Windows);
+  * Removes warning that Task Scheduler is removed or broken;
+  * Fixes #561.
+* Minor changes.
+
+Thanks to @lowl1f3 for bug reporting.
+
+### Wrapper 2.6.20
+
+* Code refactoring
+  * Proper variable naming, removed experimental code, removed extras, added regions.
+
 ## 5.18.2 | 6.6.2 — 06.03.2024
 
 * Initial checks simplified;
