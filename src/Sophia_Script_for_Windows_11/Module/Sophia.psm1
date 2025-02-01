@@ -2,39 +2,44 @@
 	.SYNOPSIS
 	Sophia Script is a PowerShell module for Windows 10 & Windows 11 fine-tuning and automating the routine tasks
 
-	Version: v6.6.2
-	Date: 06.03.2024
+	.VERSION
+	6.8.2
 
-	Copyright (c) 2014—2024 farag
-	Copyright (c) 2019—2024 farag & Inestic
+	.DATE
+	26.01.2025
 
+	.AUTHOR
+	farag, Inestic & lowl1f3
+
+	.COPYRIGHT
+	(c) 2014—2025
+
+	.THANKS
 	Thanks to all https://forum.ru-board.com members involved
 
 	.NOTES
-	Supported Windows 11 versions
-	Version: 23H2+
-	Builds: 22631.3235+
-	Editions: Home/Pro/Enterprise
+	Supports Windows 11 23H2+ Home/Pro/Enterprise
 
-	.LINK GitHub
+	.LINK
 	https://github.com/farag2/Sophia-Script-for-Windows
 
-	.LINK Telegram
+	.LINK
 	https://t.me/sophianews
 	https://t.me/sophia_chat
 
-	.LINK Discord
+	.LINK
 	https://discord.gg/sSryhaEv79
 
 	.NOTES
 	https://forum.ru-board.com/topic.cgi?forum=62&topic=30617#15
-	https://habr.com/company/skillfactory/blog/553800/
-	https://forums.mydigitallife.net/threads/powershell-windows-10-sophia-script.81675/
+	https://habr.com/companies/skillfactory/articles/553800/
+	https://forums.mydigitallife.net/threads/powershell-sophia-script-for-windows-10-windows-11-5-17-8-6-5-8-x64-2023.81675/
 	https://www.reddit.com/r/PowerShell/comments/go2n5v/powershell_script_setup_windows_10/
 
-	.LINK Authors
+	.LINK
 	https://github.com/farag2
 	https://github.com/Inestic
+	https://github.com/lowl1f3
 #>
 
 #region InitialActions
@@ -61,14 +66,17 @@ function InitialActions
 	# https://github.com/PowerShell/PowerShell/issues/2138
 	$Script:ProgressPreference = "SilentlyContinue"
 
-	# Extract strings from %SystemRoot%\System32\shell32.dll using its' number
-	# https://github.com/SamuelArnold/StarKill3r/blob/master/Star%20Killer/Star%20Killer/bin/Debug/Scripts/SANS-SEC505-master/scripts/Day1-PowerShell/Expand-IndirectString.ps1
+	# https://github.com/PowerShell/PowerShell/issues/21070
+	$Script:CompilerParameters = [System.CodeDom.Compiler.CompilerParameters]::new("System.dll")
+	$Script:CompilerParameters.TempFiles = [System.CodeDom.Compiler.TempFileCollection]::new($env:TEMP, $false)
+	$Script:CompilerParameters.GenerateInMemory = $true
 	$Signature = @{
-		Namespace        = "WinAPI"
-		Name             = "GetStrings"
-		Language         = "CSharp"
-		UsingNamespace   = "System.Text"
-		MemberDefinition = @"
+		Namespace          = "WinAPI"
+		Name               = "GetStrings"
+		Language           = "CSharp"
+		UsingNamespace     = "System.Text"
+		CompilerParameters = $CompilerParameters
+		MemberDefinition   = @"
 [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
 public static extern IntPtr GetModuleHandle(string lpModuleName);
 
@@ -115,31 +123,15 @@ public static string GetIndirectString(string indirectString)
 	}
 	if (-not ("WinAPI.GetStrings" -as [type]))
 	{
-		try
-		{
-			Add-Type @Signature
-		}
-		catch [System.ComponentModel.Win32Exception]
-		{
-			Write-Warning -Message $Localization.NonLatinUsernameWarning
-
-			Start-Process -FilePath "https://t.me/sophia_chat"
-			Start-Process -FilePath "https://discord.gg/sSryhaEv79"
-
-			Start-Process -FilePath "https://github.com/PowerShell/PowerShell/releases/latest"
-			Start-Process -FilePath "https://github.com/farag2/Sophia-Script-for-Windows/releases/latest"
-
-			Start-Process -FilePath "https://github.com/PowerShell/PowerShell/issues/21070"
-
-			exit
-		}
+		Add-Type @Signature
 	}
 
 	$Signature = @{
-		Namespace        = "WinAPI"
-		Name             = "ForegroundWindow"
-		Language         = "CSharp"
-		MemberDefinition = @"
+		Namespace          = "WinAPI"
+		Name               = "ForegroundWindow"
+		Language           = "CSharp"
+		CompilerParameters = $CompilerParameters
+		MemberDefinition   = @"
 [DllImport("user32.dll")]
 public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
 
@@ -151,76 +143,66 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 
 	if (-not ("WinAPI.ForegroundWindow" -as [type]))
 	{
-		try
-		{
-			Add-Type @Signature
-		}
-		catch [System.ComponentModel.Win32Exception]
-		{
-			Write-Warning -Message $Localization.NonLatinUsernameWarning
-
-			Start-Process -FilePath "https://t.me/sophia_chat"
-			Start-Process -FilePath "https://discord.gg/sSryhaEv79"
-
-			Start-Process -FilePath "https://github.com/PowerShell/PowerShell/releases/latest"
-			Start-Process -FilePath "https://github.com/farag2/Sophia-Script-for-Windows/releases/latest"
-
-			Start-Process -FilePath "https://github.com/PowerShell/PowerShell/issues/21070"
-
-			exit
-		}
+		Add-Type @Signature
 	}
 
 	# Check the language mode
 	if ($ExecutionContext.SessionState.LanguageMode -ne "FullLanguage")
 	{
+		Write-Information -MessageData "" -InformationAction Continue
 		Write-Warning -Message $Localization.UnsupportedLanguageMode
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_modes"
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_language_modes" -Verbose
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
 	}
 
-	# Check whether the logged-in user is an admin
+	# Checking whether the logged-in user is an admin
 	$CurrentUserName = (Get-Process -Id $PID -IncludeUserName).UserName | Split-Path -Leaf
-	$CurrentSessionId = (Get-Process -Id $PID -IncludeUserName).SessionId
-	$LoginUserName = (Get-Process -IncludeUserName | Where-Object -FilterScript {($_.ProcessName -eq "explorer") -and ($_.SessionId -eq $CurrentSessionId)}).UserName | Select-Object -First 1 | Split-Path -Leaf
+	$LoginUserName = (Get-CimInstance -ClassName Win32_Process -Filter "name='explorer.exe'" | Invoke-CimMethod -MethodName GetOwner | Select-Object -First 1).User
 
 	if ($CurrentUserName -ne $LoginUserName)
 	{
+		Write-Information -MessageData "" -InformationAction Continue
 		Write-Warning -Message $Localization.LoggedInUserNotAdmin
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
 	}
 
-	# Check whether the script was run via PowerShell 5.1
+	# Checking whether the script was run via PowerShell 5.1
 	if ($PSVersionTable.PSVersion.Major -ne 5)
 	{
+		Write-Information -MessageData "" -InformationAction Continue
 		Write-Warning -Message ($Localization.UnsupportedPowerShell -f $PSVersionTable.PSVersion.Major, $PSVersionTable.PSVersion.Minor)
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
 	}
 
-	# Check whether the script was run in PowerShell ISE or VS Code
+	# Checking whether the script was run in PowerShell ISE or VS Code
 	if (($Host.Name -match "ISE") -or ($env:TERM_PROGRAM -eq "vscode"))
 	{
+		Write-Information -MessageData "" -InformationAction Continue
 		Write-Warning -Message ($Localization.UnsupportedHost -f $Host.Name.Replace("Host", ""))
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
 	}
 
-	# Check whether Windows was broken by 3rd party harmful tweakers and trojans
+	# Checking whether Windows was broken by 3rd party harmful tweakers, trojans, or custom Windows images
 	$Tweakers = @{
 		# https://github.com/Sycnex/Windows10Debloater
 		Windows10Debloater  = "$env:SystemDrive\Temp\Windows10Debloater"
@@ -230,12 +212,8 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 		"Bloatware Removal" = "$env:SystemDrive\BRU\Bloatware-Removal*.log"
 		# https://www.youtube.com/GHOSTSPECTRE
 		"Ghost Toolbox"     = "$env:SystemRoot\System32\migwiz\dlmanifests\run.ghost.cmd"
-		# https://github.com/hellzerg/optimizer
-		Optimizer           = "$(Get-ItemPropertyValue -Path `"HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders`" -Name `"{374DE290-123F-4565-9164-39C4925E467B}`")\OptimizerDownloads"
 		# https://win10tweaker.ru
 		"Win 10 Tweaker"    = "HKCU:\Software\Win 10 Tweaker"
-		# https://forum.ru-board.com/topic.cgi?forum=5&topic=50519
-		"Modern Tweaker"    = "Registry::HKEY_CLASSES_ROOT\CLSID\{645FF040-5081-101B-9F08-00AA002F954E}\shell\Modern Cleaner"
 		# https://boosterx.ru
 		BoosterX            = "$env:ProgramFiles\GameModeX\GameModeX.exe"
 		# https://forum.ru-board.com/topic.cgi?forum=5&topic=14285&start=400#11
@@ -248,10 +226,16 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 		"WinterOS Tweaker"  = "$env:SystemRoot\WinterOS*"
 		# https://github.com/ThePCDuke/WinCry
 		WinCry              = "$env:SystemRoot\TempCleaner.exe"
-		# https://hone.gg
-		Hone                = "$env:LOCALAPPDATA\Programs\Hone\Hone.exe"
-		# https://github.com/ChrisTitusTech/winutil
-		winutil             = "$env:TEMP\Winutil.log"
+		# https://www.youtube.com/watch?v=5NBqbUUB1Pk
+		WinClean             = "$env:ProgramFiles\WinClean Plus Apps"
+		# https://github.com/Atlas-OS/Atlas
+		AtlasOS              = "$env:SystemRoot\AtlasModules"
+		# https://x.com/NPKirbyy
+		KirbyOS              = "$env:ProgramData\KirbyOS"
+		# https://pc-np.com
+		PCNP                 = "HKCU:\Software\PCNP"
+		# https://www.reddit.com/r/TronScript/
+		Tron                 = "$env:SystemDrive\logs\tron"
 	}
 	foreach ($Tweaker in $Tweakers.Keys)
 	{
@@ -259,92 +243,220 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 		{
 			if ($Tweakers[$Tweaker] -eq "HKCU:\Software\Win 10 Tweaker")
 			{
+				Write-Information -MessageData "" -InformationAction Continue
 				Write-Warning -Message $Localization.Win10TweakerWarning
+				Write-Information -MessageData "" -InformationAction Continue
 
-				Start-Process -FilePath "https://youtu.be/na93MS-1EkM"
-				Start-Process -FilePath "https://pikabu.ru/story/byekdor_v_win_10_tweaker_ili_sovremennyie_metodyi_borbyi_s_piratstvom_8227558"
-				Start-Process -FilePath "https://t.me/sophia_chat"
-				Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+				Write-Verbose -Message "https://youtu.be/na93MS-1EkM" -Verbose
+				Write-Verbose -Message "https://pikabu.ru/story/byekdor_v_win_10_tweaker_ili_sovremennyie_metodyi_borbyi_s_piratstvom_8227558" -Verbose
+				Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+				Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+				Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 				exit
 			}
 
+			Write-Information -MessageData "" -InformationAction Continue
 			Write-Warning -Message ($Localization.TweakerWarning -f $Tweaker)
+			Write-Information -MessageData "" -InformationAction Continue
 
-			Start-Process -FilePath "https://t.me/sophia_chat"
-			Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+			Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+			Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+			Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 			exit
 		}
 	}
 
-	# Check whether Windows was broken by 3rd party harmful tweakers and trojans
+	# Checking whether Windows was broken by 3rd party harmful tweakers, trojans, or custom Windows images
 	$Tweakers = @{
 		# https://forum.ru-board.com/topic.cgi?forum=62&topic=30617&start=1600#14
-		AutoSettingsPS = "$(Get-Item -Path `"HKLM:\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths`" | Where-Object -FilterScript {$_.Property -match `"AutoSettingsPS`"})"
+		AutoSettingsPS   = "$(Get-Item -Path `"HKLM:\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths`" | Where-Object -FilterScript {$_.Property -match `"AutoSettingsPS`"})"
 		# Flibustier custom Windows image
-		Flibustier     = "$(Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\.NETFramework\Performance -Name *flibustier)"
+		Flibustier       = "$(Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\.NETFramework\Performance -Name *flibustier)"
+		# https://github.com/builtbybel/Winpilot
+		Winpilot         = "$((Get-ItemProperty -Path `"HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache`").PSObject.Properties | Where-Object -FilterScript {$_.Value -eq `"Winpilot`"})"
+		# https://github.com/builtbybel/Winpilot
+		Bloatynosy       = "$((Get-ItemProperty -Path `"HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache`").PSObject.Properties | Where-Object -FilterScript {$_.Value -eq `"BloatynosyNue`"})"
+		# https://github.com/builtbybel/xd-AntiSpy
+		"xd-AntiSpy"     = "$((Get-ItemProperty -Path `"HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache`").PSObject.Properties | Where-Object -FilterScript {$_.Value -eq `"xd-AntiSpy`"})"
+		# https://forum.ru-board.com/topic.cgi?forum=5&topic=50519
+		"Modern Tweaker" = "$((Get-ItemProperty -Path `"HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache`").PSObject.Properties | Where-Object -FilterScript {$_.Value -eq `"Modern Tweaker`"})"
+		# https://github.com/ChrisTitusTech/winutil
+		winutil          = "$(Get-CimInstance -Namespace root/CIMV2/power -ClassName Win32_PowerPlan | Where-Object -FilterScript {$_.ElementName -match `"ChrisTitus`"})"
+		# https://discord.com/invite/kernelos
+		KernelOS         = "$(Get-CimInstance -Namespace root/CIMV2/power -ClassName Win32_PowerPlan | Where-Object -FilterScript {$_.ElementName -match `"KernelOS`"})"
+		# https://discord.com/invite/9ZCgxhaYV6
+		ChlorideOS       = "$(Get-Volume | Where-Object -FilterScript {$_.FileSystemLabel -eq `"ChlorideOS`"})"
 	}
 	foreach ($Tweaker in $Tweakers.Keys)
 	{
 		if ($Tweakers[$Tweaker])
 		{
+			Write-Information -MessageData "" -InformationAction Continue
 			Write-Warning -Message ($Localization.TweakerWarning -f $Tweaker)
+			Write-Information -MessageData "" -InformationAction Continue
 
-			Start-Process -FilePath "https://t.me/sophia_chat"
-			Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+			Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+			Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+			Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 			exit
 		}
 	}
 
-	# Check whether Get-WindowsEdition cmdlet is working
+	# Remove harmful blocked DNS domains list from https://github.com/schrebra/Windows.10.DNS.Block.List
+	Get-NetFirewallRule -DisplayName Block.MSFT* -ErrorAction Ignore | Remove-NetFirewallRule
+
+	# Remove firewalled IP addresses that block Microsoft recourses added by harmful tweakers
+	# https://wpd.app
+	Get-NetFirewallRule -DisplayName "Blocker MicrosoftTelemetry*", "Blocker MicrosoftExtra*", "windowsSpyBlocker*" -ErrorAction Ignore | Remove-NetFirewallRule
+
+	Write-Information -MessageData "" -InformationAction Continue
+	# Extract the localized "Please wait..." string from shell32.dll
+	Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+	Write-Information -MessageData "" -InformationAction Continue
+
+	# Remove IP addresses from hosts file that block Microsoft recourses added by WindowsSpyBlocker
+	# https://github.com/crazy-max/WindowsSpyBlocker
 	try
 	{
-		Get-WindowsEdition -Online
+		# Checking whether https://github.com is alive
+		$Parameters = @{
+			Uri              = "https://github.com"
+			Method           = "Head"
+			DisableKeepAlive = $true
+			UseBasicParsing  = $true
+		}
+		(Invoke-WebRequest @Parameters).StatusDescription
+
+		Clear-Variable -Name IPArray -ErrorAction Ignore
+
+		# https://github.com/crazy-max/WindowsSpyBlocker/tree/master/data/hosts
+		$Parameters = @{
+			Uri             = "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/extra.txt"
+			UseBasicParsing = $true
+			Verbose         = $true
+		}
+		$extra = (Invoke-WebRequest @Parameters).Content
+
+		$Parameters = @{
+			Uri             = "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/extra_v6.txt"
+			UseBasicParsing = $true
+			Verbose         = $true
+		}
+		$extra_v6 = (Invoke-WebRequest @Parameters).Content
+
+		$Parameters = @{
+			Uri             = "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/spy.txt"
+			UseBasicParsing = $true
+			Verbose         = $true
+		}
+		$spy = (Invoke-WebRequest @Parameters).Content
+
+		$Parameters = @{
+			Uri             = "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/spy_v6.txt"
+			UseBasicParsing = $true
+			Verbose         = $true
+		}
+		$spy_v6 = (Invoke-WebRequest @Parameters).Content
+
+		$Parameters = @{
+			Uri             = "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/update.txt"
+			UseBasicParsing = $true
+			Verbose         = $true
+		}
+		$update = (Invoke-WebRequest @Parameters).Content
+
+		$Parameters = @{
+			Uri             = "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/update_v6.txt"
+			UseBasicParsing = $true
+				Verbose         = $true
+			}
+		$update_v6 = (Invoke-WebRequest @Parameters).Content
+
+		$IPArray += $extra, $extra_v6, $spy, $spy_v6, $update, $update_v6
+		# Split the Array variable content
+		$IPArray = $IPArray -split "`r?`n" | Where-Object -FilterScript {$_ -notmatch "#"}
+
+		Write-Information -MessageData "" -InformationAction Continue
+		# Extract the localized "Please wait..." string from shell32.dll
+		Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+		Write-Information -MessageData "" -InformationAction Continue
+
+		# Checking whether hosts contains any of string from $IPArray array
+		if ((Get-Content -Path "$env:SystemRoot\System32\drivers\etc\hosts" -Encoding Default -Force | ForEach-Object -Process {$_.Trim()} | ForEach-Object -Process {
+			($_ -ne "") -and ($_ -ne " ") -and (-not $_.StartsWith("#")) -and ($IPArray -split "`r?`n" | Select-String -Pattern $_)
+		}) -contains $true)
+		{
+			Write-Warning -Message ($Localization.TweakerWarning -f "WindowsSpyBlocker")
+
+			# Clear hosts file
+			$hosts = Get-Content -Path "$env:SystemRoot\System32\drivers\etc\hosts" -Encoding Default -Force
+			$hosts | ForEach-Object -Process {
+				if (($_ -ne "") -and (-not $_.StartsWith("#")) -and ($IPArray -split "`r?`n" | Select-String -Pattern $_.Trim()))
+				{
+					$hostsData = $_
+					$hosts = $hosts | Where-Object -FilterScript {$_ -notmatch $hostsData}
+				}
+			}
+			# Save in UTF8 without BOM
+			$hosts | Set-Content -Path "$env:SystemRoot\System32\drivers\etc\hosts" -Encoding Default -Force
+
+			Start-Process -FilePath notepad.exe "$env:SystemRoot\System32\drivers\etc\hosts"
+		}
 	}
-	catch [System.Runtime.InteropServices.COMException]
+	catch [System.Net.WebException]
 	{
-		Write-Warning -Message ($Localization.WindowsComponentBroken -f "Get-WindowsEdition")
-		exit
+		Write-Warning -Message ($Localization.NoResponse -f "https://github.com")
+		Write-Error -Message ($Localization.NoResponse -f "https://github.com") -ErrorAction SilentlyContinue
 	}
 
-	# Check whether Windows Feature Experience Pack was removed by harmful tweakers
+	# Checking whether Windows Feature Experience Pack was removed by harmful tweakers
 	if (-not (Get-AppxPackage -Name MicrosoftWindows.Client.CBS))
 	{
+		Write-Information -MessageData "" -InformationAction Continue
 		Write-Warning -Message ($Localization.WindowsComponentBroken -f "Windows Feature Experience Pack")
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
 	}
 
-	# Check whether EventLog service is running in order to be sire that Event Logger is enabled
+	# Checking whether EventLog service is running in order to be sire that Event Logger is enabled
 	if ((Get-Service -Name EventLog).Status -eq "Stopped")
 	{
+		Write-Information -MessageData "" -InformationAction Continue
 		# Extract the localized "Event Viewer" string from shell32.dll
 		Write-Warning -Message ($Localization.WindowsComponentBroken -f $([WinAPI.GetStrings]::GetString(22029)))
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
 	}
 
-	# Check whether Microsoft Store being an important system component was removed
+	# Checking whether the Microsoft Store being an important system component was removed
 	if (-not (Get-AppxPackage -Name Microsoft.WindowsStore))
 	{
+		Write-Information -MessageData "" -InformationAction Continue
 		Write-Warning -Message ($Localization.WindowsComponentBroken -f "Microsoft Store")
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
 	}
 
 	#region Defender checks
-	# Check whether necessary Microsoft Defender components exists
+	# Checking whether necessary Microsoft Defender components exists
 	$Files = @(
 		"$env:SystemRoot\System32\smartscreen.exe",
 		"$env:SystemRoot\System32\SecurityHealthSystray.exe",
@@ -354,11 +466,13 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	{
 		if (-not (Test-Path -Path $File))
 		{
+			Write-Information -MessageData "" -InformationAction Continue
 			Write-Warning -Message ($Localization.WindowsComponentBroken -f $File)
+			Write-Information -MessageData "" -InformationAction Continue
 
-			Start-Process -FilePath "https://github.com/farag2/Sophia-Script-for-Windows/releases/latest"
-			Start-Process -FilePath "https://t.me/sophia_chat"
-			Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+			Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+			Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+			Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 			exit
 		}
@@ -367,10 +481,13 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	# Checking whether Windows Security Settings page was hidden from UI
 	if ([Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer", "SettingsPageVisibility", $null) -match "hide:windowsdefender")
 	{
+		Write-Information -MessageData "" -InformationAction Continue
 		Write-Warning -Message ($Localization.WindowsComponentBroken -f "Microsoft Defender")
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
 	}
@@ -383,22 +500,28 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	catch [Microsoft.Management.Infrastructure.CimException]
 	{
 		# Provider Load Failure exception
-		Write-Warning -Message $Global:Error.Exception.Message | Select-Object -First 1
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Warning -Message ($Global:Error.Exception.Message | Select-Object -First 1)
 		Write-Warning -Message ($Localization.WindowsComponentBroken -f "Microsoft Defender")
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
 	}
 
 	# Check Microsoft Defender state
-	if ($null -eq (Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntiVirusProduct -ErrorAction Ignore))
+	if ($null -eq (Get-CimInstance -ClassName AntiVirusProduct -Namespace root/SecurityCenter2 -ErrorAction Ignore))
 	{
+		Write-Information -MessageData "" -InformationAction Continue
 		Write-Warning -Message ($Localization.WindowsComponentBroken -f "Microsoft Defender")
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
 	}
@@ -411,25 +534,39 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	}
 	catch [Microsoft.PowerShell.Commands.ServiceCommandException]
 	{
+		Write-Information -MessageData "" -InformationAction Continue
 		Write-Warning -Message ($Localization.WindowsComponentBroken -f "Microsoft Defender")
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
 	}
 	$Script:DefenderServices = ($Services | Where-Object -FilterScript {$_.Status -ne "running"} | Measure-Object).Count -lt $Services.Count
 
+	# Checking Get-MpPreference cmdlet
+	try
+	{
+		$Script:DefenderMpPreferenceBroken = $false
+		(Get-MpPreference -ErrorAction Stop).EnableControlledFolderAccess 
+	}
+	catch [Microsoft.Management.Infrastructure.CimException]
+	{
+		$Script:DefenderMpPreferenceBroken = $true
+	}
+
 	# Check Microsoft Defender state
-	$productState = (Get-CimInstance -Namespace root/SecurityCenter2 -ClassName Antivirusproduct | Where-Object -FilterScript {$_.instanceGuid -eq "{D68DDC3A-831F-4fae-9E44-DA132C1ACF46}"}).productState
+	$productState = (Get-CimInstance -ClassName AntiVirusProduct -Namespace root/SecurityCenter2 | Where-Object -FilterScript {$_.instanceGuid -eq "{D68DDC3A-831F-4fae-9E44-DA132C1ACF46}"}).productState
 	$DefenderState = ('0x{0:x}' -f $productState).Substring(3, 2)
 	if ($DefenderState -notmatch "00|01")
 	{
 		# Defender is a currently used AV. Continue...
 		$Script:DefenderProductState = $true
 
-		# Check whether Microsoft Defender was turned off via GPO
-		# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
+		# Checking whether Microsoft Defender was turned off via GPO
+		# We have to use GetValue() due to "Set-StrictMode -Version Latest"
 		if ([Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender", "DisableAntiSpyware", $null) -eq 1)
 		{
 			$Script:AntiSpywareEnabled = $false
@@ -439,8 +576,8 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 			$Script:AntiSpywareEnabled = $true
 		}
 
-		# Check whether Microsoft Defender was turned off via GPO
-		# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
+		# Checking whether Microsoft Defender was turned off via GPO
+		# We have to use GetValue() due to "Set-StrictMode -Version Latest"
 		if ([Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection", "DisableRealtimeMonitoring", $null) -eq 1)
 		{
 			$Script:RealtimeMonitoringEnabled = $false
@@ -450,8 +587,8 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 			$Script:RealtimeMonitoringEnabled = $true
 		}
 
-		# Check whether Microsoft Defender was turned off via GPO
-		# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
+		# Checking whether Microsoft Defender was turned off via GPO
+		# We have to use GetValue() due to "Set-StrictMode -Version Latest"
 		if ([Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection", "DisableBehaviorMonitoring", $null) -eq 1)
 		{
 			$Script:BehaviorMonitoringEnabled = $false
@@ -471,22 +608,25 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 		# Defender is enabled
 		$Script:DefenderEnabled = $true
 
-		switch ((Get-MpPreference).EnableControlledFolderAccess)
+		if (-not $Script:DefenderMpPreferenceBroken)
 		{
-			"1"
+			switch ((Get-MpPreference).EnableControlledFolderAccess)
 			{
-				Write-Warning -Message $Localization.ControlledFolderAccessDisabled
+				"1"
+				{
+					Write-Warning -Message $Localization.ControlledFolderAccessDisabled
 
-				# Turn off Controlled folder access to let the script proceed
-				$Script:ControlledFolderAccess = $true
-				Set-MpPreference -EnableControlledFolderAccess Disabled
+					# Turn off Controlled folder access to let the script proceed
+					$Script:ControlledFolderAccess = $true
+					Set-MpPreference -EnableControlledFolderAccess Disabled
 
-				# Open "Ransomware protection" page
-				Start-Process -FilePath windowsdefender://RansomwareProtection
-			}
-			"0"
-			{
-				$Script:ControlledFolderAccess = $false
+					# Open "Ransomware protection" page
+					Start-Process -FilePath windowsdefender://RansomwareProtection
+				}
+				"0"
+				{
+					$Script:ControlledFolderAccess = $false
+				}
 			}
 		}
 	}
@@ -504,73 +644,117 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	)
 	if (($PendingActions | Test-Path) -contains $true)
 	{
+		Write-Information -MessageData "" -InformationAction Continue
 		Write-Warning -Message $Localization.RebootPending
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
 	}
 
-	# Check whether the current module version is the latest one
+	# Checking whether the current module version is the latest one
 	try
 	{
-		# Check the internet connection
+		# https://github.com/farag2/Sophia-Script-for-Windows/blob/master/sophia_script_versions.json
 		$Parameters = @{
-			Name        = "dns.msftncsi.com"
-			Server      = "1.1.1.1"
-			DnsOnly     = $true
-			ErrorAction = "Stop"
+			Uri             = "https://raw.githubusercontent.com/farag2/Sophia-Script-for-Windows/master/sophia_script_versions.json"
+			Verbose         = $true
+			UseBasicParsing = $true
 		}
-		if ((Resolve-DnsName @Parameters).IPAddress -notcontains "131.107.255.255")
+		$LatestRelease = (Invoke-RestMethod @Parameters).Sophia_Script_Windows_11_PowerShell_5_1
+		$CurrentRelease = (Get-Module -Name Sophia).Version.ToString()
+
+		if ([System.Version]$LatestRelease -gt [System.Version]$CurrentRelease)
 		{
-			return
-		}
+			Write-Information -MessageData "" -InformationAction Continue
+			Write-Warning -Message $Localization.UnsupportedRelease
+			Write-Information -MessageData "" -InformationAction Continue
 
-		try
-		{
-			# https://github.com/farag2/Sophia-Script-for-Windows/blob/master/sophia_script_versions.json
-			$Parameters = @{
-				Uri             = "https://raw.githubusercontent.com/farag2/Sophia-Script-for-Windows/master/sophia_script_versions.json"
-				Verbose         = $true
-				UseBasicParsing = $true
-			}
-			$LatestRelease = (Invoke-RestMethod @Parameters).Sophia_Script_Windows_11_PowerShell_5_1
-			$CurrentRelease = (Get-Module -Name Sophia).Version.ToString()
+			Write-Verbose -Message "https://github.com/farag2/Sophia-Script-for-Windows/releases/latest" -Verbose
+			Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+			Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
-			if ([System.Version]$LatestRelease -gt [System.Version]$CurrentRelease)
-			{
-				Write-Warning -Message $Localization.UnsupportedRelease
-
-				Start-Process -FilePath "https://github.com/farag2/Sophia-Script-for-Windows/releases/latest"
-				Start-Process -FilePath "https://t.me/sophia_chat"
-				Start-Process -FilePath "https://discord.gg/sSryhaEv79"
-
-				exit
-			}
-		}
-		catch [System.Net.WebException]
-		{
-			Write-Warning -Message ($Localization.NoResponse -f "https://github.com")
-			Write-Error -Message ($Localization.NoResponse -f "https://github.com") -ErrorAction SilentlyContinue
+			exit
 		}
 	}
-	catch [System.ComponentModel.Win32Exception]
+	catch [System.Net.WebException]
 	{
-		Write-Warning -Message $Localization.NoInternetConnection
-		Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
+		Write-Warning -Message ($Localization.NoResponse -f "https://github.com")
+		Write-Error -Message ($Localization.NoResponse -f "https://github.com") -ErrorAction SilentlyContinue
 	}
 
-	# Check whether LGPO.exe exists in the bin folder
-	if (-not (Test-Path -Path "$PSScriptRoot\..\bin\LGPO.exe"))
+	# Checking whether LGPO.exe exists in the bin folder
+	if (-not (Test-Path -Path "$PSScriptRoot\..\Binaries\LGPO.exe"))
 	{
-		Write-Warning -Message $Localization.Bin
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Warning -Message ($Localization.Bin -f [IO.Path]::GetFullPath("$PSScriptRoot\..\Binaries"))
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://github.com/farag2/Sophia-Script-for-Windows/releases/latest"
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://github.com/farag2/Sophia-Script-for-Windows/releases/latest" -Verbose
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
+	}
+
+	# Get the real Windows version like %SystemRoot%\system32\winver.exe relies on
+	$Signature = @{
+		Namespace          = "WinAPI"
+		Name               = "Winbrand"
+		Language           = "CSharp"
+		CompilerParameters = $CompilerParameters
+		MemberDefinition   = @"
+[DllImport("Winbrand.dll", CharSet = CharSet.Unicode)]
+public extern static string BrandingFormatString(string sFormat);
+"@
+	}
+	if (-not ("WinAPI.Winbrand" -as [type]))
+	{
+		Add-Type @Signature
+	}
+
+	if ([WinAPI.Winbrand]::BrandingFormatString("%WINDOWS_LONG%") -notmatch "Windows 11")
+	{
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Warning -Message ($Localization.UnsupportedOSBuild -f [WinAPI.Winbrand]::BrandingFormatString("%WINDOWS_LONG%"))
+		Write-Information -MessageData "" -InformationAction Continue
+
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
+		Write-Verbose -Message "https://github.com/farag2/Sophia-Script-for-Windows#system-requirements" -Verbose
+
+		exit
+	}
+
+	# Checking whether current terminal is Windows Terminal
+	if ($env:WT_SESSION)
+	{
+		# Checking whether Windows Terminal version is higher than 1.20
+		# Get Windows Terminal process PID
+		$ParentProcessID = (Get-CimInstance -ClassName Win32_Process -Filter ProcessID=$PID).ParentProcessID
+		$WindowsTerminalVersion = (Get-Process -Id $ParentProcessID).FileVersion
+		# FileVersion has four properties while $WindowsTerminalVersion has only three, unless the [System.Version] accelerator fails
+		$WindowsTerminalVersion = "{0}.{1}.{2}" -f $WindowsTerminalVersion.Split(".")
+
+		if ([System.Version]$WindowsTerminalVersion -lt [System.Version]"1.20.0")
+		{
+			Write-Information -MessageData "" -InformationAction Continue
+			Write-Warning -Message $Localization.UnsupportedWindowsTerminal
+			Write-Information -MessageData "" -InformationAction Continue
+
+			Start-Process -FilePath "ms-windows-store://pdp/?productid=9N0DX20HK701"
+
+			Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+			Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
+			Write-Verbose -Message "https://github.com/farag2/Sophia-Script-for-Windows#system-requirements" -Verbose
+
+			# Check for UWP apps updates
+			Get-CimInstance -ClassName MDM_EnterpriseModernAppManagement_AppManagement01 -Namespace root/CIMV2/mdm/dmmap | Invoke-CimMethod -MethodName UpdateScanMethod
+
+			exit
+		}
 	}
 
 	# Detect Windows build version
@@ -578,17 +762,19 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	{
 		{$_ -lt 22631}
 		{
-			Write-Warning -Message $Localization.UnsupportedOSBuild
+			Write-Information -MessageData "" -InformationAction Continue
+			Write-Warning -Message ($Localization.UnsupportedOSBuild -f [WinAPI.Winbrand]::BrandingFormatString("%WINDOWS_LONG%"))
+			Write-Information -MessageData "" -InformationAction Continue
 
-			Start-Process -FilePath "https://t.me/sophia_chat"
-			Start-Process -FilePath "https://discord.gg/sSryhaEv79"
-			Start-Process -FilePath "https://github.com/farag2/Sophia-Script-for-Windows#system-requirements"
+			Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+			Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
+			Write-Verbose -Message "https://github.com/farag2/Sophia-Script-for-Windows#system-requirements" -Verbose
 
 			# Receive updates for other Microsoft products when you update Windows
-			(New-Object -ComObject Microsoft.Update.ServiceManager).AddService2("7971f918-a847-4430-9279-4a52d1efe18d", 7, "")
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name AllowMUUpdateService -PropertyType DWord -Value 1 -Force
 
 			# Check for UWP apps updates
-			Get-CimInstance -Namespace root/CIMV2/mdm/dmmap -ClassName MDM_EnterpriseModernAppManagement_AppManagement01 | Invoke-CimMethod -MethodName UpdateScanMethod
+			Get-CimInstance -ClassName MDM_EnterpriseModernAppManagement_AppManagement01 -Namespace root/CIMV2/mdm/dmmap | Invoke-CimMethod -MethodName UpdateScanMethod
 
 			# Check for updates
 			Start-Process -FilePath "$env:SystemRoot\System32\UsoClient.exe" -ArgumentList StartInteractiveScan
@@ -600,68 +786,53 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 		}
 		"22631"
 		{
-			# Check whether the current module version is the latest one
+			# Checking whether the current module version is the latest one
 			try
 			{
-				# Check the internet connection
+				# https://github.com/farag2/Sophia-Script-for-Windows/blob/master/supported_windows_builds.json
 				$Parameters = @{
-					Name        = "dns.msftncsi.com"
-					Server      = "1.1.1.1"
-					DnsOnly     = $true
-					ErrorAction = "Stop"
+					Uri             = "https://raw.githubusercontent.com/farag2/Sophia-Script-for-Windows/master/supported_windows_builds.json"
+					Verbose         = $true
+					UseBasicParsing = $true
 				}
-				if ((Resolve-DnsName @Parameters).IPAddress -notcontains "131.107.255.255") ###
-				{
-					return
-				}
-
-				try
-				{
-					# https://github.com/farag2/Sophia-Script-for-Windows/blob/master/supported_windows_builds.json
-					$Parameters = @{
-						Uri             = "https://raw.githubusercontent.com/farag2/Sophia-Script-for-Windows/master/supported_windows_builds.json"
-						Verbose         = $true
-						UseBasicParsing = $true
-					}
-					$LatestSupportedBuild = (Invoke-RestMethod @Parameters).Windows_11
-
-					if ((Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows nt\CurrentVersion" -Name UBR) -lt $LatestSupportedBuild)
-					{
-						# Check Windows minor build version
-						# https://support.microsoft.com/en-us/topic/windows-11-version-23h2-update-history-59875222-b990-4bd9-932f-91a5954de434
-						$CurrentBuild = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows nt\CurrentVersion" -Name CurrentBuild
-						$UBR = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows nt\CurrentVersion" -Name UBR
-						Write-Warning -Message ($Localization.UpdateWarning -f $CurrentBuild.CurrentBuild, $UBR.UBR, $LatestSupportedBuild)
-
-						Start-Process -FilePath "https://t.me/sophia_chat"
-						Start-Process -FilePath "https://discord.gg/sSryhaEv79"
-						Start-Process -FilePath "https://github.com/farag2/Sophia-Script-for-Windows#system-requirements"
-
-						# Receive updates for other Microsoft products when you update Windows
-						(New-Object -ComObject Microsoft.Update.ServiceManager).AddService2("7971f918-a847-4430-9279-4a52d1efe18d", 7, "")
-
-						# Check for UWP apps updates
-						Get-CimInstance -Namespace root/CIMV2/mdm/dmmap -ClassName MDM_EnterpriseModernAppManagement_AppManagement01 | Invoke-CimMethod -MethodName UpdateScanMethod
-
-						# Check for updates
-						Start-Process -FilePath "$env:SystemRoot\System32\UsoClient.exe" -ArgumentList StartInteractiveScan
-
-						# Open the "Windows Update" page
-						Start-Process -FilePath "ms-settings:windowsupdate"
-
-						exit
-					}
-				}
-				catch [System.Net.WebException]
-				{
-					Write-Warning -Message ($Localization.NoResponse -f "https://github.com")
-					Write-Error -Message ($Localization.NoResponse -f "https://github.com") -ErrorAction SilentlyContinue
-				}
+				$LatestSupportedBuild = (Invoke-RestMethod @Parameters).Windows_11
 			}
-			catch [System.ComponentModel.Win32Exception]
+			catch [System.Net.WebException]
 			{
-				Write-Warning -Message $Localization.NoInternetConnection
-				Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
+				$LatestSupportedBuild = 0
+
+				Write-Warning -Message ($Localization.NoResponse -f "https://github.com")
+				Write-Error -Message ($Localization.NoResponse -f "https://github.com") -ErrorAction SilentlyContinue
+			}
+
+			# We may use Test-Path -Path variable:LatestSupportedBuild
+			if ((Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows nt\CurrentVersion" -Name UBR) -lt $LatestSupportedBuild)
+			{
+				# Check Windows minor build version
+				# https://support.microsoft.com/en-us/topic/windows-11-version-23h2-update-history-59875222-b990-4bd9-932f-91a5954de434
+				$CurrentBuild = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows nt\CurrentVersion" -Name CurrentBuild
+				$UBR = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows nt\CurrentVersion" -Name UBR
+				Write-Information -MessageData "" -InformationAction Continue
+				Write-Warning -Message ($Localization.UpdateWarning -f $CurrentBuild.CurrentBuild, $UBR.UBR, $LatestSupportedBuild)
+				Write-Information -MessageData "" -InformationAction Continue
+
+				Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+				Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
+				Write-Verbose -Message "https://github.com/farag2/Sophia-Script-for-Windows#system-requirements" -Verbose
+
+				# Receive updates for other Microsoft products when you update Windows
+				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name AllowMUUpdateService -PropertyType DWord -Value 1 -Force
+
+				# Check for UWP apps updates
+				Get-CimInstance -ClassName MDM_EnterpriseModernAppManagement_AppManagement01 -Namespace root/CIMV2/mdm/dmmap | Invoke-CimMethod -MethodName UpdateScanMethod
+
+				# Check for updates
+				Start-Process -FilePath "$env:SystemRoot\System32\UsoClient.exe" -ArgumentList StartInteractiveScan
+
+				# Open the "Windows Update" page
+				Start-Process -FilePath "ms-settings:windowsupdate"
+
+				exit
 			}
 		}
 	}
@@ -672,7 +843,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 		Get-Service -Name SysMain | Set-Service -StartupType Automatic
 		Get-Service -Name SysMain | Start-Service
 
-		Start-Process -FilePath "https://www.outsidethebox.ms/19318/"
+		Start-Process -FilePath "https://www.outsidethebox.ms/19318"
 	}
 
 	# Automatically manage paging file size for all drives
@@ -681,172 +852,17 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 		Get-CimInstance -ClassName CIM_ComputerSystem | Set-CimInstance -Property @{AutomaticManagedPageFile = $true}
 	}
 
-	# Remove firewalled IP addresses that block Microsoft recourses added by harmful tweakers
-	# https://wpd.app
-	Get-NetFirewallRule | Where-Object -FilterScript {($_.DisplayName -match "Blocker MicrosoftTelemetry") -or ($_.DisplayName -match "Blocker MicrosoftExtra") -or ($_.DisplayName -match "windowsSpyBlocker")} | Remove-NetFirewallRule
-
-	Write-Information -MessageData "" -InformationAction Continue
-	# Extract the localized "Please wait..." string from shell32.dll
-	Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
-	Write-Information -MessageData "" -InformationAction Continue
-
-	# Remove IP addresses from hosts file that block Microsoft recourses added by WindowsSpyBlocker
-	# https://github.com/crazy-max/WindowsSpyBlocker
-	try
-	{
-		# Check the internet connection
-		$Parameters = @{
-			Name        = "dns.msftncsi.com"
-			Server      = "1.1.1.1"
-			DnsOnly     = $true
-			ErrorAction = "Stop"
-		}
-		if ((Resolve-DnsName @Parameters).IPAddress -notcontains "131.107.255.255")
-		{
-			return
-		}
-
-		try
-		{
-			# Check whether https://github.com is alive
-			$Parameters = @{
-				Uri              = "https://github.com"
-				Method           = "Head"
-				DisableKeepAlive = $true
-				UseBasicParsing  = $true
-			}
-			if (-not (Invoke-WebRequest @Parameters).StatusDescription)
-			{
-				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message $Localization.Skipped -Verbose
-
-				return
-			}
-
-			Clear-Variable -Name IPArray -ErrorAction Ignore
-
-			# https://github.com/crazy-max/WindowsSpyBlocker/tree/master/data/hosts
-			$Parameters = @{
-				Uri             = "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/extra.txt"
-				UseBasicParsing = $true
-				Verbose         = $true
-			}
-			$extra = (Invoke-WebRequest @Parameters).Content
-
-			$Parameters = @{
-				Uri             = "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/extra_v6.txt"
-				UseBasicParsing = $true
-				Verbose         = $true
-			}
-			$extra_v6 = (Invoke-WebRequest @Parameters).Content
-
-			$Parameters = @{
-				Uri             = "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/spy.txt"
-				UseBasicParsing = $true
-				Verbose         = $true
-			}
-			$spy = (Invoke-WebRequest @Parameters).Content
-
-			$Parameters = @{
-				Uri             = "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/spy_v6.txt"
-				UseBasicParsing = $true
-				Verbose         = $true
-			}
-			$spy_v6 = (Invoke-WebRequest @Parameters).Content
-
-			$Parameters = @{
-				Uri             = "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/update.txt"
-				UseBasicParsing = $true
-				Verbose         = $true
-			}
-			$update = (Invoke-WebRequest @Parameters).Content
-
-			$Parameters = @{
-				Uri             = "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/update_v6.txt"
-				UseBasicParsing = $true
-				Verbose         = $true
-			}
-			$update_v6 = (Invoke-WebRequest @Parameters).Content
-
-			$IPArray += $extra, $extra_v6, $spy, $spy_v6, $update, $update_v6
-			# Split the Array variable content
-			$IPArray = $IPArray -split "`r?`n" | Where-Object -FilterScript {$_ -notmatch "#"}
-
-			Write-Information -MessageData "" -InformationAction Continue
-			# Extract the localized "Please wait..." string from shell32.dll
-			Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
-			Write-Information -MessageData "" -InformationAction Continue
-
-			# Check whether hosts contains any of string from $IPArray array
-			if ((Get-Content -Path "$env:SystemRoot\System32\drivers\etc\hosts" -Encoding Default -Force | ForEach-Object -Process {$_.Trim()} | ForEach-Object -Process {
-				($_ -ne "") -and ($_ -ne " ") -and (-not $_.StartsWith("#")) -and ($IPArray -split "`r?`n" | Select-String -Pattern $_)
-			}) -contains $true)
-			{
-				Write-Warning -Message ($Localization.TweakerWarning -f "WindowsSpyBlocker")
-
-				# Clear hosts file
-				$hosts = Get-Content -Path "$env:SystemRoot\System32\drivers\etc\hosts" -Encoding Default -Force
-				$hosts | ForEach-Object -Process {
-					if (($_ -ne "") -and (-not $_.StartsWith("#")) -and ($IPArray -split "`r?`n" | Select-String -Pattern $_.Trim()))
-					{
-						$hostsData = $_
-						$hosts = $hosts | Where-Object -FilterScript {$_ -notmatch $hostsData}
-					}
-				}
-				$hosts | Set-Content -Path "$env:SystemRoot\System32\drivers\etc\hosts" -Encoding Default -Force
-
-				Start-Process -FilePath notepad.exe "$env:SystemRoot\System32\drivers\etc\hosts"
-			}
-		}
-		catch [System.Net.WebException]
-		{
-			Write-Warning -Message ($Localization.NoResponse -f "https://github.com")
-			Write-Error -Message ($Localization.NoResponse -f "https://github.com") -ErrorAction SilentlyContinue
-
-			Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-		}
-	}
-	catch [System.ComponentModel.Win32Exception]
-	{
-		Write-Warning -Message $Localization.NoInternetConnection
-		Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
-
-		Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-	}
-
-	# Register a temp schedule task to check whether there's a Windows bug presented
-	$Action     = New-ScheduledTaskAction -Execute powershell.exe
-	$Settings   = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable
-	$Principal  = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Highest
-	$Parameters = @{
-		TaskName    = "SophiaTempScheduledTask"
-		Principal   = $Principal
-		Action      = $Action
-		Settings    = $Settings
-	}
-	try
-	{
-		Register-ScheduledTask @Parameters -Force -ErrorAction Stop
-	}
-	catch [Microsoft.Management.Infrastructure.CimException]
-	{
-		Write-Verbose -Message ($Localization.WindowsComponentBroken -f [WinAPI.GetStrings]::GetIndirectString("@%SystemRoot%\system32\schedsvc.dll,-100")) -Verbose
-
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
-
-		exit
-	}
-
-	# Remove temp schedule task
-	Unregister-ScheduledTask -TaskName SophiaTempScheduledTask -Confirm:$false -ErrorAction Ignore
-
 	# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
 	# https://github.com/PowerShell/PowerShell/issues/21070
-	Get-ChildItem -Path "$env:TEMP\Computer.txt", "$env:TEMP\User.txt" -Force -ErrorAction Ignore | Remove-Item -Recurse -Force -ErrorAction Ignore
+	Get-ChildItem -Path "$env:TEMP\Computer.txt", "$env:TEMP\User.txt" -Force -ErrorAction Ignore | Remove-Item -Force -ErrorAction Ignore
 
 	# Save all opened folders in order to restore them after File Explorer restart
-	$Script:OpenedFolders = {(New-Object -ComObject Shell.Application).Windows() | ForEach-Object -Process {$_.Document.Folder.Self.Path}}.Invoke()
+	try
+	{
+		$Script:OpenedFolders = {(New-Object -ComObject Shell.Application).Windows() | ForEach-Object -Process {$_.Document.Folder.Self.Path}}.Invoke()
+	}
+	catch [System.Management.Automation.PropertyNotFoundException]
+	{}
 
 	<#
 		.SYNOPSIS
@@ -896,8 +912,12 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 			$Menu += [WinAPI.GetStrings]::GetString(16956)
 		}
 
-		# https://github.com/microsoft/terminal/issues/14992
-		[System.Console]::BufferHeight += $Menu.Count
+		# Checking whether current terminal is Windows Terminal
+		if ($env:WT_SESSION)
+		{
+			# https://github.com/microsoft/terminal/issues/14992
+			[System.Console]::BufferHeight += $Menu.Count
+		}
 		$minY = [Console]::CursorTop
 		$y = [Math]::Max([Math]::Min($Default, $Menu.Count), 0)
 
@@ -957,13 +977,23 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	# Extract the localized "Skip" string from shell32.dll
 	$Script:Skip = [WinAPI.GetStrings]::GetString(16956)
 
+	Write-Information -MessageData "┏┓    ┓ •    ┏┓   •     ┏      ┓ ┏•   ┓ " -InformationAction Continue
+	Write-Information -MessageData "┗┓┏┓┏┓┣┓┓┏┓  ┗┓┏┏┓┓┏┓╋  ╋┏┓┏┓  ┃┃┃┓┏┓┏┫┏┓┓┏┏┏" -InformationAction Continue
+	Write-Information -MessageData "┗┛┗┛┣┛┛┗┗┗┻  ┗┛┗┛ ┗┣┛┗  ┛┗┛┛   ┗┻┛┗┛┗┗┻┗┛┗┻┛┛" -InformationAction Continue
+	Write-Information -MessageData "    ┛              ┛                   " -InformationAction Continue
+
+	Write-Information -MessageData "https://t.me/sophianews" -InformationAction Continue
+	Write-Information -MessageData "https://t.me/sophia_chat" -InformationAction Continue
+	Write-Information -MessageData "https://discord.gg/sSryhaEv79" -InformationAction Continue
+
 	# Display a warning message about whether a user has customized the preset file
 	if ($Warning)
 	{
 		# Get the name of a preset (e.g Sophia.ps1) regardless it was named
 		# $_.File has no EndsWith() method
-		$PresetName = Split-Path -Path (((Get-PSCallStack).Position | Where-Object -FilterScript {$_.File}).File | Where-Object -FilterScript {$_.EndsWith(".ps1")}) -Leaf
-		Write-Verbose -Message ($Localization.CustomizationWarning -f $PresetName) -Verbose
+		Write-Information -MessageData "" -InformationAction Continue
+		[string]$PresetName = ((Get-PSCallStack).Position | Where-Object -FilterScript {$_.File}).File | Where-Object -FilterScript {$_.EndsWith(".ps1")}
+		Write-Verbose -Message ($Localization.CustomizationWarning -f "`"$PresetName`"") -Verbose
 
 		do
 		{
@@ -977,13 +1007,13 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 				}
 				$No
 				{
-					Invoke-Item -Path $PSScriptRoot\..\$PresetName
+					Invoke-Item -Path $PresetName
 
 					Start-Sleep -Seconds 5
 
-					Start-Process -FilePath "https://github.com/farag2/Sophia-Script-for-Windows#how-to-use"
-					Start-Process -FilePath "https://t.me/sophia_chat"
-					Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+					Write-Verbose -Message "https://github.com/farag2/Sophia-Script-for-Windows#how-to-use" -Verbose
+					Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+					Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 					exit
 				}
@@ -1042,6 +1072,9 @@ function CreateRestorePoint
 	.EXAMPLE
 	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -Type DWORD -Value 0
 
+	.EXAMPLE
+	Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Type DWORD -Value 1
+
 	.NOTES
 	https://techcommunity.microsoft.com/t5/microsoft-security-baselines/lgpo-exe-local-group-policy-object-utility-v1-0/ba-p/701045
 
@@ -1092,9 +1125,6 @@ function script:Set-Policy
 
 	if (-not (Test-Path -Path "$env:SystemRoot\System32\gpedit.msc"))
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.Skipped -Verbose
-
 		return
 	}
 
@@ -1129,6 +1159,7 @@ $($Type):$($Value)`n
 		$Path = "$env:TEMP\User.txt"
 	}
 
+	# Save in UTF8 without BOM
 	Add-Content -Path $Path -Value $Policy -Encoding Default -Force
 }
 #endregion Additional function
@@ -1175,17 +1206,19 @@ function DiagTrackService
 		$Enable
 	)
 
-	# Check whether "InitialActions" function was removed in preset file
+	# Checking whether "InitialActions" function was removed in preset file
 	if (-not ("WinAPI.GetStrings" -as [type]))
 	{
 		# Get the name of a preset (e.g Sophia.ps1) regardless it was named
 		# $_.File has no EndsWith() method
 		$PresetName = Split-Path -Path (((Get-PSCallStack).Position | Where-Object -FilterScript {$_.File}).File | Where-Object -FilterScript {$_.EndsWith(".ps1")}) -Leaf
+
 		Write-Information -MessageData "" -InformationAction Continue
 		Write-Verbose -Message ($Localization.InitialActionsCheckFailed -f $PresetName) -Verbose
+		Write-Information -MessageData "" -InformationAction Continue
 
-		Start-Process -FilePath "https://t.me/sophia_chat"
-		Start-Process -FilePath "https://discord.gg/sSryhaEv79"
+		Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+		Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
 		exit
 	}
@@ -1196,20 +1229,20 @@ function DiagTrackService
 		{
 			# Connected User Experiences and Telemetry
 			# Disabling the "Connected User Experiences and Telemetry" service (DiagTrack) can cause you not being able to get Xbox achievements anymore and affects Feedback Hub
-			Get-Service -Name DiagTrack | Stop-Service -Force
-			Get-Service -Name DiagTrack | Set-Service -StartupType Disabled
+			Get-Service -Name DiagTrack -ErrorAction Ignore | Stop-Service -Force
+			Get-Service -Name DiagTrack -ErrorAction Ignore | Set-Service -StartupType Disabled
 
 			# Block connection for the Unified Telemetry Client Outbound Traffic
-			Get-NetFirewallRule -Group DiagTrack | Set-NetFirewallRule -Enabled True -Action Block
+			Get-NetFirewallRule -Group DiagTrack -ErrorAction Ignore | Set-NetFirewallRule -Enabled True -Action Block
 		}
 		"Enable"
 		{
 			# Connected User Experiences and Telemetry
-			Get-Service -Name DiagTrack | Set-Service -StartupType Automatic
-			Get-Service -Name DiagTrack | Start-Service
+			Get-Service -Name DiagTrack -ErrorAction Ignore | Set-Service -StartupType Automatic
+			Get-Service -Name DiagTrack -ErrorAction Ignore | Start-Service
 
 			# Allow connection for the Unified Telemetry Client Outbound Traffic
-			Get-NetFirewallRule -Group DiagTrack | Set-NetFirewallRule -Enabled True -Action Allow
+			Get-NetFirewallRule -Group DiagTrack -ErrorAction Ignore | Set-NetFirewallRule -Enabled True -Action Allow
 		}
 	}
 }
@@ -1266,7 +1299,8 @@ function DiagnosticDataLevel
 	{
 		"Minimal"
 		{
-			if (Get-WindowsEdition -Online | Where-Object -FilterScript {($_.Edition -like "Enterprise*") -or ($_.Edition -eq "Education")})
+			$EditionID = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").EditionID
+			if (($EditionID -match "Enterprise") -or ($EditionID -match "Education"))
 			{
 				# Diagnostic data off
 				New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -PropertyType DWord -Value 0 -Force
@@ -1332,22 +1366,24 @@ function ErrorReporting
 		$Enable
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting", "HKCU:\Software\Policies\Microsoft\Windows\Windows Error Reporting" -Name Disabled -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path "SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting" -Name Disabled -Type CLEAR
+	Set-Policy -Scope User -Path "Software\Policies\Microsoft\Windows\Windows Error Reporting" -Name Disabled -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
-			if ((Get-WindowsEdition -Online).Edition -notmatch "Core")
-			{
-				Get-ScheduledTask -TaskName QueueReporting | Disable-ScheduledTask
-				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Windows Error Reporting" -Name Disabled -PropertyType DWord -Value 1 -Force
-			}
+			Get-ScheduledTask -TaskName QueueReporting -ErrorAction Ignore | Disable-ScheduledTask
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Windows Error Reporting" -Name Disabled -PropertyType DWord -Value 1 -Force
 
 			Get-Service -Name WerSvc | Stop-Service -Force
 			Get-Service -Name WerSvc | Set-Service -StartupType Disabled
 		}
 		"Enable"
 		{
-			Get-ScheduledTask -TaskName QueueReporting | Enable-ScheduledTask
+			Get-ScheduledTask -TaskName QueueReporting -ErrorAction Ignore | Enable-ScheduledTask
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Windows Error Reporting" -Name Disabled -Force -ErrorAction Ignore
 
 			Get-Service -Name WerSvc | Set-Service -StartupType Manual
@@ -1394,6 +1430,10 @@ function FeedbackFrequency
 		$Automatically
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name DoNotShowFeedbackNotifications -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name DoNotShowFeedbackNotifications -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Never"
@@ -1403,10 +1443,12 @@ function FeedbackFrequency
 				New-Item -Path HKCU:\Software\Microsoft\Siuf\Rules -Force
 			}
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Siuf\Rules -Name NumberOfSIUFInPeriod -PropertyType DWord -Value 0 -Force
+
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Siuf\Rules -Name PeriodInNanoSeconds -Force -ErrorAction Ignore
 		}
 		"Automatically"
 		{
-			Remove-Item -Path HKCU:\Software\Microsoft\Siuf\Rules -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Siuf\Rules -Name PeriodInNanoSeconds, NumberOfSIUFInPeriod -Force -ErrorAction Ignore
 		}
 	}
 }
@@ -1603,7 +1645,7 @@ function ScheduledTasks
 
 		[void]$Window.Close()
 
-		$SelectedTasks | ForEach-Object -Process {Write-Verbose $_.TaskName -Verbose}
+		$SelectedTasks | ForEach-Object -Process {Write-Verbose -Message $_.TaskName -Verbose}
 		$SelectedTasks | Disable-ScheduledTask
 	}
 
@@ -1615,7 +1657,7 @@ function ScheduledTasks
 
 		[void]$Window.Close()
 
-		$SelectedTasks | ForEach-Object -Process {Write-Verbose $_.TaskName -Verbose}
+		$SelectedTasks | ForEach-Object -Process {Write-Verbose -Message $_.TaskName -Verbose}
 		$SelectedTasks | Enable-ScheduledTask
 	}
 
@@ -1699,7 +1741,8 @@ function ScheduledTasks
 
 	Add-Type -AssemblyName System.Windows.Forms
 
-	Get-Process | Where-Object -FilterScript {(($_.ProcessName -eq "powershell") -or ($_.ProcessName -eq "WindowsTerminal")) -and ($_.MainWindowTitle -match "Sophia Script for Windows 11")} | ForEach-Object -Process {
+	# We cannot use Get-Process -Id $PID as script might be invoked via Terminal with different $PID
+	Get-Process -Name powershell, WindowsTerminal -ErrorAction Ignore | Where-Object -FilterScript {$_.MainWindowTitle -match "Sophia Script for Windows 11"} | ForEach-Object -Process {
 		# Show window, if minimized
 		[WinAPI.ForegroundWindow]::ShowWindowAsync($_.MainWindowHandle, 10)
 
@@ -1763,6 +1806,10 @@ function SigninInfo
 		[switch]
 		$Enable
 	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name DisableAutomaticRestartSignOn -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name DisableAutomaticRestartSignOn -Type CLEAR
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -1872,22 +1919,23 @@ function AdvertisingID
 		$Enable
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo -Name DisabledByGroupPolicy -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name DisabledByGroupPolicy -Type CLEAR
+
+	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo))
+	{
+		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo -Force
+	}
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
-			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo))
-			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo -Force
-			}
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo -Name Enabled -PropertyType DWord -Value 0 -Force
 		}
 		"Enable"
 		{
-			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo))
-			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo -Force
-			}
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo -Name Enabled -PropertyType DWord -Value 1 -Force
 		}
 	}
@@ -1981,6 +2029,10 @@ function WindowsTips
 		[switch]
 		$Enable
 	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent -Name DisableSoftLanding -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\CloudContent -Name DisableSoftLanding -Type CLEAR
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -2088,6 +2140,10 @@ function AppsSilentInstalling
 		$Enable
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent -Name DisableWindowsConsumerFeatures -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\CloudContent -Name DisableWindowsConsumerFeatures -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
@@ -2139,22 +2195,19 @@ function WhatsNewInWindows
 		$Enable
 	)
 
+	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement))
+	{
+		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Force
+	}
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
-			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement))
-			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Force
-			}
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Name ScoobeSystemSettingEnabled -PropertyType DWord -Value 0 -Force
 		}
 		"Enable"
 		{
-			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement))
-			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Force
-			}
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Name ScoobeSystemSettingEnabled -PropertyType DWord -Value 1 -Force
 		}
 	}
@@ -2198,6 +2251,10 @@ function TailoredExperiences
 		$Enable
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\CloudContent -Name DisableTailoredExperiencesWithDiagnosticData -Force -ErrorAction Ignore
+	Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\CloudContent -Name DisableTailoredExperiencesWithDiagnosticData -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
@@ -2213,13 +2270,13 @@ function TailoredExperiences
 
 <#
 	.SYNOPSIS
-	Bing search in the Start Menu
+	Bing search in Start Menu
 
 	.PARAMETER Disable
-	Disable Bing search in the Start Menu
+	Disable Bing search in Start Menu
 
 	.PARAMETER Enable
-	Enable Bing search in the Start Menu
+	Enable Bing search in Start Menu
 
 	.EXAMPLE
 	BingSearch -Disable
@@ -2271,27 +2328,24 @@ function BingSearch
 
 <#
 	.SYNOPSIS
-	Browsing history in the Start menu
+	Recommendations for tips, shortcuts, new apps, and more in Start menu
 
 	.PARAMETER Hide
-	Do not show websites from your browsing history in the Start menu
+	Do not show recommendations for tips, shortcuts, new apps, and more in Start menu
 
 	.PARAMETER Show
-	Show websites from your browsing history in the Start menu
+	Show recommendations for tips, shortcuts, new apps, and more in Start menu
 
 	.EXAMPLE
-	BrowsingHistory -Hide
+	StartRecommendationsTips -Hide
 
 	.EXAMPLE
-	BrowsingHistory -Show
-
-	.NOTES
-	Windows 11 build 23451 (Dev) required
+	StartRecommendationsTips -Show
 
 	.NOTES
 	Current user
 #>
-function BrowsingHistory
+function StartRecommendationsTips
 {
 	param
 	(
@@ -2310,23 +2364,66 @@ function BrowsingHistory
 		$Show
 	)
 
-	if ((Get-CimInstance -ClassName CIM_OperatingSystem).BuildNumber -lt 23451)
+	switch ($PSCmdlet.ParameterSetName)
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.Skipped -Verbose
-
-		return
+		"Hide"
+		{
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_IrisRecommendations -PropertyType DWord -Value 0 -Force
+		}
+		"Show"
+		{
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_IrisRecommendations -Force -ErrorAction Ignore
+		}
 	}
+}
+
+<#
+	.SYNOPSIS
+	Microsoft account-related notifications on Start Menu
+
+	.PARAMETER Hide
+	Do not show Microsoft account-related notifications on Start Menu in Start menu
+
+	.PARAMETER Show
+	Show Microsoft account-related notifications on Start Menu in Start menu
+
+	.EXAMPLE
+	StartAccountNotifications -Hide
+
+	.EXAMPLE
+	StartAccountNotifications -Show
+
+	.NOTES
+	Current user
+#>
+function StartAccountNotifications
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Hide"
+		)]
+		[switch]
+		$Hide,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Show"
+		)]
+		[switch]
+		$Show
+	)
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Hide"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_RecoPersonalizedSites -PropertyType DWord -Value 0 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_AccountNotifications -PropertyType DWord -Value 0 -Force
 		}
 		"Show"
 		{
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_RecoPersonalizedSites -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_AccountNotifications -Force -ErrorAction Ignore
 		}
 	}
 }
@@ -2648,10 +2745,10 @@ function OpenFileExplorerTo
 	File Explorer mode
 
 	.PARAMETER Disable
-	Disable the File Explorer compact mode
+	Disable File Explorer compact mode
 
 	.PARAMETER Enable
-	Enable the File Explorer compact mode
+	Enable File Explorer compact mode
 
 	.EXAMPLE
 	FileExplorerCompactMode -Disable
@@ -2783,6 +2880,8 @@ function SnapAssist
 		$Enable
 	)
 
+	New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WindowArrangementActive -PropertyType String -Value 1 -Force
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
@@ -2834,22 +2933,19 @@ function FileTransferDialog
 		$Compact
 	)
 
+	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager))
+	{
+		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Force
+	}
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Detailed"
 		{
-			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager))
-			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Force
-			}
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Name EnthusiastMode -PropertyType DWord -Value 1 -Force
 		}
 		"Compact"
 		{
-			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager))
-			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Force
-			}
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Name EnthusiastMode -PropertyType DWord -Value 0 -Force
 		}
 	}
@@ -2892,6 +2988,11 @@ function RecycleBinDeleteConfirmation
 		[switch]
 		$Disable
 	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer, HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name ConfirmFileDelete -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name ConfirmFileDelete -Type CLEAR
+	Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name ConfirmFileDelete -Type CLEAR
 
 	$ShellState = Get-ItemPropertyValue -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShellState
 
@@ -2947,6 +3048,11 @@ function QuickAccessRecentFiles
 		[switch]
 		$Show
 	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer, HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoRecentDocsHistory -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoRecentDocsHistory -Type CLEAR
+	Set-Policy -Scope User -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoRecentDocsHistory -Type CLEAR
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -3101,23 +3207,36 @@ function TaskbarWidgets
 		$Show
 	)
 
+	if (-not (Get-AppxPackage -Name MicrosoftWindows.Client.WebExperience))
+	{
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+		return
+	}
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\default\NewsAndInterests\AllowNewsAndInterests -Name value -Force -ErrorAction Ignore
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Dsh -Name AllowNewsAndInterests -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Dsh -Name AllowNewsAndInterests -Type CLEAR
+
+	# We cannot set a value to TaskbarDa, having called any of APIs, except of copying powershell.exe (or any other tricks) with a different name, due to a UCPD driver tracks all executables to block the access to the registry
+	Copy-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Destination "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Hide"
 		{
-			if (Get-AppxPackage -Name MicrosoftWindows.Client.WebExperience)
-			{
-				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarDa -PropertyType DWord -Value 0 -Force
-			}
+			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarDa -PropertyType DWord -Value 0 -Force}
 		}
 		"Show"
 		{
-			if (Get-AppxPackage -Name MicrosoftWindows.Client.WebExperience)
-			{
-				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarDa -PropertyType DWord -Value 1 -Force
-			}
+			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarDa -PropertyType DWord -Value 1 -Force}
 		}
 	}
+
+	Remove-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force
 }
 
 <#
@@ -3181,6 +3300,12 @@ function TaskbarSearch
 		$SearchBox
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Search\DisableSearch -Name value -PropertyType DWord -Value 0 -Force
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name DisableSearch, SearchOnTaskbarMode -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path "SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name DisableSearch -Type CLEAR
+	Set-Policy -Scope Computer -Path "SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name SearchOnTaskbarMode -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Hide"
@@ -3240,18 +3365,23 @@ function SearchHighlights
 		$Show
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name EnableDynamicContentInWSB -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path "SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name EnableDynamicContentInWSB -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Hide"
 		{
-			# Check whether "Ask Copilot" and "Find results in Web" (Web) were disabled. They also disable Search Highlights automatically
-			# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
+			# Checking whether "Ask Copilot" and "Find results in Web" were disabled. They also disable Search Highlights automatically
+			# We have to use GetValue() due to "Set-StrictMode -Version Latest"
 			$BingSearchEnabled = ([Microsoft.Win32.Registry]::GetValue("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search", "BingSearchEnabled", $null))
 			$DisableSearchBoxSuggestions = ([Microsoft.Win32.Registry]::GetValue("HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\Explorer", "DisableSearchBoxSuggestions", $null))
 			if (($BingSearchEnabled -eq 1) -or ($DisableSearchBoxSuggestions -eq 1))
 			{
 				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message $Localization.Skipped -Verbose
+				Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+				Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 				return
 			}
@@ -3262,62 +3392,11 @@ function SearchHighlights
 		}
 		"Show"
 		{
-			# Enable "Ask Copilot" and "Find results in Web" (Web) icons in Windows Search in order to enable Search Highlights
+			# Enable "Ask Copilot" and "Find results in Web" icons in Windows Search in order to enable Search Highlights
 			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Search -Name BingSearchEnabled -Force -ErrorAction Ignore
 			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Force -ErrorAction Ignore
 
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings -Name IsDynamicSearchBoxEnabled -PropertyType DWord -Value 1 -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Copilot button on the taskbar
-
-	.PARAMETER Hide
-	Hide Copilot button on the taskbar
-
-	.PARAMETER Show
-	Show Copilot button on the taskbar
-
-	.EXAMPLE
-	CopilotButton -Hide
-
-	.EXAMPLE
-	CopilotButton -Show
-
-	.NOTES
-	Current user
-#>
-function CopilotButton
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowCopilotButton -PropertyType DWord -Value 0 -Force
-		}
-		"Show"
-		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowCopilotButton -PropertyType DWord -Value 1 -Force
 		}
 	}
 }
@@ -3360,6 +3439,11 @@ function TaskViewButton
 		$Show
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideTaskViewButton -Force -ErrorAction Ignore
+	Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name HideTaskViewButton -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideTaskViewButton -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Hide"
@@ -3371,77 +3455,6 @@ function TaskViewButton
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowTaskViewButton -PropertyType DWord -Value 1 -Force
 		}
 	}
-}
-
-<#
-	.SYNOPSIS
-	Chat (Microsoft Teams) installation for new users
-
-	.PARAMETER Enable
-	Hide the Chat icon (Microsoft Teams) on the taskbar and prevent Microsoft Teams from installing for new users
-
-	.PARAMETER Disable
-	Show the Chat icon (Microsoft Teams) on the taskbar and remove block from installing Microsoft Teams for new users
-
-	.EXAMPLE
-	PreventTeamsInstallation -Enable
-
-	.EXAMPLE
-	PreventTeamsInstallation -Disable
-
-	.NOTES
-	Current user
-#>
-function PreventTeamsInstallation
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	Clear-Variable -Name Task -ErrorAction Ignore
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Disable"
-		{
-			# Save string to run it as "NT SERVICE\TrustedInstaller"
-			# Prevent Microsoft Teams from installing for new users
-			$Task = "New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications -Name ConfigureChatAutoInstall -Value 0 -Type Dword -Force"
-		}
-		"Enable"
-		{
-			# Save string to run it as "NT SERVICE\TrustedInstaller"
-			# Remove block from installing Microsoft Teams for new users
-			$Task = "Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications -Name ConfigureChatAutoInstall -Value 1 -Type Dword -Force"
-		}
-	}
-
-	# Create a Scheduled Task to run it as "NT SERVICE\TrustedInstaller"
-	$Parameters = @{
-		TaskName = "BlockTeamsInstallation"
-		Action   = New-ScheduledTaskAction -Execute powershell.exe -Argument "-WindowStyle Hidden -Command $Task"
-	}
-	Register-ScheduledTask @Parameters -Force
-
-	$ScheduleService = New-Object -ComObject Schedule.Service
-	$ScheduleService.Connect()
-	$ScheduleService.GetFolder("\").GetTask("BlockTeamsInstallation").RunEx($null, 0, 0, "NT SERVICE\TrustedInstaller")
-
-	# Remove temporary task
-	Unregister-ScheduledTask -TaskName BlockTeamsInstallation -Confirm:$false
 }
 
 <#
@@ -3546,19 +3559,24 @@ function TaskbarCombine
 		$Never
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer, HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoTaskGrouping -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoTaskGrouping -Type CLEAR
+	Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoTaskGrouping -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Always"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name taskbarGlomLevel -PropertyType DWord -Value 0 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarGlomLevel -PropertyType DWord -Value 0 -Force
 		}
 		"Full"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name taskbarGlomLevel -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarGlomLevel -PropertyType DWord -Value 1 -Force
 		}
 		"Never"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name taskbarGlomLevel -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarGlomLevel -PropertyType DWord -Value 2 -Force
 		}
 	}
 }
@@ -3568,13 +3586,16 @@ function TaskbarCombine
 	Unpin shortcuts from the taskbar
 
 	.PARAMETER Edge
-	Unpin the "Microsoft Edge" shortcut from the taskbar
+	Unpin Microsoft Edge shortcut from the taskbar
 
 	.PARAMETER Store
-	Unpin the "Microsoft Store" shortcut from the taskbar
+	Unpin Microsoft Store from the taskbar
+
+	.PARAMETER Outlook
+	Unpin Outlook shortcut from the taskbar
 
 	.EXAMPLE
-	UnpinTaskbarShortcuts -Shortcuts Edge, Store
+	UnpinTaskbarShortcuts -Shortcuts Edge, Store, Outlook
 
 	.NOTES
 	Current user
@@ -3585,7 +3606,7 @@ function UnpinTaskbarShortcuts
 	param
 	(
 		[Parameter(Mandatory = $true)]
-		[ValidateSet("Edge", "Store")]
+		[ValidateSet("Edge", "Store", "Outlook")]
 		[string[]]
 		$Shortcuts
 	)
@@ -3605,21 +3626,85 @@ function UnpinTaskbarShortcuts
 					$Shell = (New-Object -ComObject Shell.Application).NameSpace("$env:AppData\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar")
 					$Shortcut = $Shell.ParseName("Microsoft Edge.lnk")
 					# Extract the localized "Unpin from taskbar" string from shell32.dll
-					$Shortcut.Verbs() | Where-Object -FilterScript {$_.Name -eq "$([WinAPI.GetStrings]::GetString(5387))"} | ForEach-Object -Process {$_.DoIt()}
+					$Shortcut.Verbs() | Where-Object -FilterScript {$_.Name -eq $LocalizedString} | ForEach-Object -Process {$_.DoIt()}
 				}
 			}
 			Store
 			{
-				# Start-Job is used due to that the calling this function before UninstallUWPApps breaks the retrieval of the localized UWP apps packages names
-				if ((New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}").Items() | Where-Object -FilterScript {$_.Path -eq "Microsoft.WindowsStore_8wekyb3d8bbwe!App"})
+				if ((New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}").Items() | Where-Object -FilterScript {$_.Name -eq "Microsoft Store"})
 				{
-					Start-Job -ScriptBlock {
-						$Apps = (New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}").Items()
-						# Extract the localized "Unpin from taskbar" string from shell32.dll
-						($Apps | Where-Object -FilterScript {$_.Name -eq "Microsoft Store"}).Verbs() | Where-Object -FilterScript {$_.Name -eq $using:LocalizedString} | ForEach-Object -Process {$_.DoIt()}
-					} | Receive-Job -Wait -AutoRemoveJob
+					# Extract the localized "Unpin from taskbar" string from shell32.dll
+					((New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}").Items() | Where-Object -FilterScript {
+						$_.Name -eq "Microsoft Store"
+					}).Verbs() | Where-Object -FilterScript {$_.Name -eq $LocalizedString} | ForEach-Object -Process {$_.DoIt()}
 				}
 			}
+			Outlook
+			{
+				if ((New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}").Items() | Where-Object -FilterScript {$_.Name -match "Outlook"})
+				{
+					# Extract the localized "Unpin from taskbar" string from shell32.dll
+					((New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}").Items() | Where-Object -FilterScript {
+						$_.Name -match "Outlook"
+					}).Verbs() | Where-Object -FilterScript {$_.Name -eq $LocalizedString} | ForEach-Object -Process {$_.DoIt()}
+				}
+			}
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	End task in taskbar by right click
+
+	.PARAMETER Enable
+	Enable end task in taskbar by right click
+
+	.PARAMETER Disable
+	Disable end task in taskbar by right click
+
+	.EXAMPLE
+	TaskbarEndTask -Enable
+
+	.EXAMPLE
+	TaskbarEndTask -Disable
+
+	.NOTES
+	Current user
+#>
+function TaskbarEndTask
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings))
+	{
+		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings -Force
+	}
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings -Name TaskbarEndTask -PropertyType DWord -Value 1 -Force
+		}
+		"Disable"
+		{
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings -Name TaskbarEndTask -Force -ErrorAction Ignore
 		}
 	}
 }
@@ -3675,32 +3760,29 @@ function ControlPanelView
 		$SmallIcons
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name ForceClassicControlPanel -Force -ErrorAction Ignore
+	Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name ForceClassicControlPanel -Type CLEAR
+
+	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel))
+	{
+		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Force
+	}
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Category"
 		{
-			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel))
-			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Force
-			}
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 0 -Force
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 0 -Force
 		}
 		"LargeIcons"
 		{
-			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel))
-			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Force
-			}
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 0 -Force
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 1 -Force
 		}
 		"SmallIcons"
 		{
-			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel))
-			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Force
-			}
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 1 -Force
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 1 -Force
 		}
@@ -3847,6 +3929,10 @@ function FirstLogonAnimation
 		$Enable
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableFirstLogonAnimation -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableFirstLogonAnimation -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
@@ -3948,6 +4034,8 @@ function ShortcutsSuffix
 		[switch]
 		$Enable
 	)
+
+	Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name link -Force -ErrorAction Ignore
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -4106,6 +4194,11 @@ function AeroShaking
 		$Disable
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\Software\Policies\Microsoft\Windows\Explorer -Name NoWindowMinimizingShortcuts -Force -ErrorAction Ignore
+	Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name NoWindowMinimizingShortcuts -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoWindowMinimizingShortcuts -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Enable"
@@ -4121,13 +4214,13 @@ function AeroShaking
 
 <#
 	.SYNOPSIS
-	Free "Windows 11 Cursors Concept v2" cursors from Jepri Creations
+	Free "Windows 11 Cursors Concept" cursors from Jepri Creations
 
 	.PARAMETER Dark
-	Download and install free dark "Windows 11 Cursors Concept v2" cursors from Jepri Creations
+	Download and install free dark "Windows 11 Cursors Concept" cursors from Jepri Creations
 
 	.PARAMETER Light
-	Download and install free light "Windows 11 Cursors Concept v2" cursors from Jepri Creations
+	Download and install free light "Windows 11 Cursors Concept" cursors from Jepri Creations
 
 	.PARAMETER Default
 	Set default cursors
@@ -4142,10 +4235,10 @@ function AeroShaking
 	Cursors -Default
 
 	.LINK
-	https://www.deviantart.com/jepricreations/art/Windows-11-Cursors-Concept-v2-886489356
+	https://www.deviantart.com/jepricreations/art/Windows-11-Cursors-Concept-886489356
 
 	.NOTES
-	The 21/05/23 version
+	The 14/12/24 version
 
 	.NOTES
 	Current user
@@ -4176,132 +4269,91 @@ function Cursors
 		$Default
 	)
 
-	if (-not (Test-Path -Path "$env:SystemRoot\System32\tar.exe"))
-	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.Skipped -Verbose
-
-		return
-	}
-
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Dark"
 		{
 			try
 			{
-				# Check the internet connection
+				# Checking whether https://github.com is alive
 				$Parameters = @{
-					Name        = "dns.msftncsi.com"
-					Server      = "1.1.1.1"
-					DnsOnly     = $true
-					ErrorAction = "Stop"
+					Uri              = "https://github.com"
+					Method           = "Head"
+					DisableKeepAlive = $true
+					UseBasicParsing  = $true
 				}
-				if ((Resolve-DnsName @Parameters).IPAddress -notcontains "131.107.255.255")
+				(Invoke-WebRequest @Parameters).StatusDescription
+
+				$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
+				$Parameters = @{
+					Uri             = "https://github.com/farag2/Sophia-Script-for-Windows/raw/master/Misc/dark.zip"
+					OutFile         = "$DownloadsFolder\dark.zip"
+					UseBasicParsing = $true
+					Verbose         = $true
+				}
+				Invoke-WebRequest @Parameters
+
+				if (-not (Test-Path -Path "$env:SystemRoot\Cursors\W11 Cursor Dark Free"))
 				{
-					return
+					New-Item -Path "$env:SystemRoot\Cursors\W11 Cursor Dark Free" -ItemType Directory -Force
 				}
 
-				try
+				# Extract archive
+				& "$env:SystemRoot\System32\tar.exe" -xvf "$DownloadsFolder\dark.zip" -C "$env:SystemRoot\Cursors\W11 Cursor Dark Free"
+
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name "(default)" -PropertyType String -Value "W11 Cursor Dark Free by Jepri Creations" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name AppStarting -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\appstarting.ani" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Arrow -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\arrow.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Crosshair -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\crosshair.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Hand -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\hand.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Help -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\help.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name IBeam -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\ibeam.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name No -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\no.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name NWPen -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\nwpen.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Person -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\person.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Pin -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\pin.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name "Scheme Source" -PropertyType DWord -Value 1 -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeAll -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\sizeall.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeNESW -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\sizenesw.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeNS -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\sizens.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeNWSE -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\sizenwse.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeWE -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\sizewe.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name UpArrow -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\uparrow.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Wait -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Dark Free\wait.ani" -Force
+
+				if (-not (Test-Path -Path "HKCU:\Control Panel\Cursors\Schemes"))
 				{
-					# Check whether https://github.com is alive
-					$Parameters = @{
-						Uri              = "https://github.com"
-						Method           = "Head"
-						DisableKeepAlive = $true
-						UseBasicParsing  = $true
-					}
-					if (-not (Invoke-WebRequest @Parameters).StatusDescription)
-					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
-
-						return
-					}
-
-					$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
-					$Parameters = @{
-						Uri             = "https://github.com/farag2/Sophia-Script-for-Windows/raw/master/Misc/dark.zip"
-						OutFile         = "$DownloadsFolder\dark.zip"
-						UseBasicParsing = $true
-						Verbose         = $true
-					}
-					Invoke-WebRequest @Parameters
-
-					if (-not (Test-Path -Path "$env:SystemRoot\Cursors\W11_dark_v2.2"))
-					{
-						New-Item -Path "$env:SystemRoot\Cursors\W11_dark_v2.2" -ItemType Directory -Force
-					}
-
-					# Extract archive
-					Start-Process -FilePath "$env:SystemRoot\System32\tar.exe" -ArgumentList "-xf `"$DownloadsFolder\dark.zip`" -C `"$env:SystemRoot\Cursors\W11_dark_v2.2`" -v"
-
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name "(default)" -PropertyType String -Value "W11 Cursors Dark Free v2.2 by Jepri Creations" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name AppStarting -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\working.ani" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Arrow -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\pointer.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name ContactVisualization -PropertyType DWord -Value 1 -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Crosshair -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\precision.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name CursorBaseSize -PropertyType DWord -Value 32 -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name GestureVisualization -PropertyType DWord -Value 31 -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Hand -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\link.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Help -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\help.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name IBeam -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\beam.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name No -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\unavailable.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name NWPen -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\handwriting.cur" -Force
-					# This is not a typo
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Person -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\pin.cur" -Force
-					# This is not a typo
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Pin -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\person.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name precisionhair -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\precision.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name "Scheme Source" -PropertyType DWord -Value 1 -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeAll -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\move.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeNESW -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\dgn2.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeNS -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\vert.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeNWSE -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\dgn1.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeWE -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\horz.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name UpArrow -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\alternate.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Wait -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_dark_v2.2\busy.ani" -Force
-
-					if (-not (Test-Path -Path "HKCU:\Control Panel\Cursors\Schemes"))
-					{
-						New-Item -Path "HKCU:\Control Panel\Cursors\Schemes" -Force
-					}
-					[string[]]$Schemes = (
-						"%SystemRoot%\Cursors\W11_dark_v2.2\pointer.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\help.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\working.ani",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\busy.ani",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\precision.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\beam.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\handwriting.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\unavailable.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\vert.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\horz.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\dgn1.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\dgn2.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\move.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\alternate.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\link.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\person.cur",
-						"%SystemRoot%\Cursors\W11_dark_v2.2\pin.cur"
-					) -join ","
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors\Schemes" -Name "W11 Cursors Dark Free v2.2 by Jepri Creations" -PropertyType String -Value $Schemes -Force
-
-					Remove-Item -Path "$DownloadsFolder\dark.zip" -Force
+					New-Item -Path "HKCU:\Control Panel\Cursors\Schemes" -Force
 				}
-				catch [System.Net.WebException]
-				{
-					Write-Warning -Message ($Localization.NoResponse -f "https://github.com")
-					Write-Error -Message ($Localization.NoResponse -f "https://github.com") -ErrorAction SilentlyContinue
+				[string[]]$Schemes = (
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\arrow.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\help.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\appstarting.ani",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\wait.ani",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\crosshair.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\ibeam.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\nwpen.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\no.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\sizens.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\sizewe.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\sizenwse.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\sizenesw.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\sizeall.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\uparrow.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\hand.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\person.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Dark Free\pin.cur"
+				) -join ","
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors\Schemes" -Name "W11 Cursor Dark Free by Jepri Creations" -PropertyType String -Value $Schemes -Force
 
-					Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-				}
+				Start-Sleep -Seconds 1
+
+				Remove-Item -Path "$DownloadsFolder\dark.zip" -Force
 			}
-			catch [System.ComponentModel.Win32Exception]
+			catch [System.Net.WebException]
 			{
-				Write-Warning -Message $Localization.NoInternetConnection
-				Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
-
+				Write-Warning -Message ($Localization.NoResponse -f "https://github.com")
+				Write-Error -Message ($Localization.NoResponse -f "https://github.com") -ErrorAction SilentlyContinue
 				Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 			}
 		}
@@ -4309,118 +4361,85 @@ function Cursors
 		{
 			try
 			{
-				# Check the internet connection
+				# Checking whether https://github.com is alive
 				$Parameters = @{
-					Name        = "dns.msftncsi.com"
-					Server      = "1.1.1.1"
-					DnsOnly     = $true
-					ErrorAction = "Stop"
+					Uri              = "https://github.com"
+					Method           = "Head"
+					DisableKeepAlive = $true
+					UseBasicParsing  = $true
 				}
-				if ((Resolve-DnsName @Parameters).IPAddress -notcontains "131.107.255.255")
+				(Invoke-WebRequest @Parameters).StatusDescription
+
+				$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
+				$Parameters = @{
+					Uri             = "https://github.com/farag2/Sophia-Script-for-Windows/raw/master/Misc/light.zip"
+					OutFile         = "$DownloadsFolder\light.zip"
+					UseBasicParsing = $true
+					Verbose         = $true
+				}
+				Invoke-WebRequest @Parameters
+
+				if (-not (Test-Path -Path "$env:SystemRoot\Cursors\W11 Cursor Light Free"))
 				{
-					return
+					New-Item -Path "$env:SystemRoot\Cursors\W11 Cursor Light Free" -ItemType Directory -Force
 				}
 
-				try
+				# Extract archive
+				& "$env:SystemRoot\System32\tar.exe" -xvf "$DownloadsFolder\light.zip" -C "$env:SystemRoot\Cursors\W11 Cursor Light Free"
+
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name "(default)" -PropertyType String -Value "W11 Cursor Light Free by Jepri Creations" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name AppStarting -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\appstarting.ani" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Arrow -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\arrow.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Crosshair -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\crosshair.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Hand -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\hand.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Help -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\help.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name IBeam -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\ibeam.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name No -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\no.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name NWPen -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\nwpen.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Person -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\person.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Pin -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\pin.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name "Scheme Source" -PropertyType DWord -Value 1 -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeAll -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\sizeall.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeNESW -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\sizenesw.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeNS -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\sizens.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeNWSE -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\sizenwse.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeWE -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\sizewe.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name UpArrow -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\uparrow.cur" -Force
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Wait -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11 Cursor Light Free\wait.ani" -Force
+
+				if (-not (Test-Path -Path "HKCU:\Control Panel\Cursors\Schemes"))
 				{
-					# Check whether https://github.com is alive
-					$Parameters = @{
-						Uri              = "https://github.com"
-						Method           = "Head"
-						DisableKeepAlive = $true
-						UseBasicParsing  = $true
-					}
-					if (-not (Invoke-WebRequest @Parameters).StatusDescription)
-					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
-
-						return
-					}
-
-					$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
-					$Parameters = @{
-						Uri             = "https://github.com/farag2/Sophia-Script-for-Windows/raw/master/Misc/light.zip"
-						OutFile         = "$DownloadsFolder\light.zip"
-						UseBasicParsing = $true
-						Verbose         = $true
-					}
-					Invoke-WebRequest @Parameters
-
-					if (-not (Test-Path -Path "$env:SystemRoot\Cursors\W11_light_v2.2"))
-					{
-						New-Item -Path "$env:SystemRoot\Cursors\W11_light_v2.2" -ItemType Directory -Force
-					}
-
-					# Extract archive
-					Start-Process -FilePath "$env:SystemRoot\System32\tar.exe" -ArgumentList "-xf `"$DownloadsFolder\light.zip`" -C `"$env:SystemRoot\Cursors\W11_light_v2.2`" -v"
-
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name "(default)" -PropertyType String -Value "W11 Cursor Light Free v2.2 by Jepri Creations" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name AppStarting -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\working.ani" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Arrow -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\pointer.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name ContactVisualization -PropertyType DWord -Value 1 -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Crosshair -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\precision.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name CursorBaseSize -PropertyType DWord -Value 32 -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name GestureVisualization -PropertyType DWord -Value 31 -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Hand -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\link.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Help -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\help.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name IBeam -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\beam.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name No -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\unavailable.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name NWPen -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\handwriting.cur" -Force
-					# This is not a typo
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Person -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\pin.cur" -Force
-					# This is not a typo
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Pin -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\person.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name precisionhair -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\precision.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name "Scheme Source" -PropertyType DWord -Value 1 -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeAll -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\move.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeNESW -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\dgn2.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeNS -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\vert.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeNWSE -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\dgn1.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeWE -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\horz.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name UpArrow -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\alternate.cur" -Force
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Wait -PropertyType ExpandString -Value "%SystemRoot%\Cursors\W11_light_v2.2\busy.ani" -Force
-
-					if (-not (Test-Path -Path "HKCU:\Control Panel\Cursors\Schemes"))
-					{
-						New-Item -Path "HKCU:\Control Panel\Cursors\Schemes" -Force
-					}
-					[string[]]$Schemes = (
-						"%SystemRoot%\Cursors\W11_light_v2.2\pointer.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\help.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\working.ani",
-						"%SystemRoot%\Cursors\W11_light_v2.2\busy.ani",,
-						"%SystemRoot%\Cursors\W11_light_v2.2\precision.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\beam.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\handwriting.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\unavailable.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\vert.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\horz.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\dgn1.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\dgn2.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\move.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\alternate.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\link.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\person.cur",
-						"%SystemRoot%\Cursors\W11_light_v2.2\pin.cur"
-					) -join ","
-					New-ItemProperty -Path "HKCU:\Control Panel\Cursors\Schemes" -Name "W11 Cursor Light Free v2.2 by Jepri Creations" -PropertyType String -Value $Schemes -Force
-
-					Remove-Item -Path "$DownloadsFolder\light.zip" -Force
+					New-Item -Path "HKCU:\Control Panel\Cursors\Schemes" -Force
 				}
-				catch [System.Net.WebException]
-				{
-					Write-Warning -Message ($Localization.NoResponse -f "https://github.com")
-					Write-Error -Message ($Localization.NoResponse -f "https://github.com") -ErrorAction SilentlyContinue
+				[string[]]$Schemes = (
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\arrow.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\help.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\appstarting.ani",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\wait.ani",,
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\crosshair.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\ibeam.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\nwpen.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\no.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\sizens.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\sizewe.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\sizenwse.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\sizenesw.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\sizeall.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\uparrow.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\hand.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\person.cur",
+					"%SystemRoot%\Cursors\W11 Cursor Light Free\pin.cur"
+				) -join ","
+				New-ItemProperty -Path "HKCU:\Control Panel\Cursors\Schemes" -Name "W11 Cursor Light Free by Jepri Creations" -PropertyType String -Value $Schemes -Force
 
-					Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-				}
+				Start-Sleep -Seconds 1
+
+				Remove-Item -Path "$DownloadsFolder\light.zip" -Force
 			}
-			catch [System.ComponentModel.Win32Exception]
+			catch [System.Net.WebException]
 			{
-				Write-Warning -Message $Localization.NoInternetConnection
-				Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
-
+				Write-Warning -Message ($Localization.NoResponse -f "https://github.com")
+				Write-Error -Message ($Localization.NoResponse -f "https://github.com") -ErrorAction SilentlyContinue
 				Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 			}
 		}
@@ -4429,10 +4448,7 @@ function Cursors
 			New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name "(default)" -PropertyType String -Value "" -Force
 			New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name AppStarting -PropertyType ExpandString -Value "%SystemRoot%\cursors\aero_working.ani" -Force
 			New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Arrow -PropertyType ExpandString -Value "%SystemRoot%\cursors\aero_arrow.cur" -Force
-			New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name ContactVisualization -PropertyType DWord -Value 1 -Force
 			New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Crosshair -PropertyType ExpandString -Value "" -Force
-			New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name CursorBaseSize -PropertyType DWord -Value 32 -Force
-			New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name GestureVisualization -PropertyType DWord -Value 31 -Force
 			New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Hand -PropertyType ExpandString -Value "%SystemRoot%\cursors\aero_link.cur" -Force
 			New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Help -PropertyType ExpandString -Value "%SystemRoot%\cursors\aero_helpsel.cur" -Force
 			New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name IBeam -PropertyType ExpandString -Value "" -Force
@@ -4453,10 +4469,11 @@ function Cursors
 
 	# Reload cursor on-the-fly
 	$Signature = @{
-		Namespace        = "WinAPI"
-		Name             = "Cursor"
-		Language         = "CSharp"
-		MemberDefinition = @"
+		Namespace          = "WinAPI"
+		Name               = "Cursor"
+		Language           = "CSharp"
+		CompilerParameters = $CompilerParameters
+		MemberDefinition   = @"
 [DllImport("user32.dll", EntryPoint = "SystemParametersInfo")]
 public static extern bool SystemParametersInfo(uint uiAction, uint uiParam, uint pvParam, uint fWinIni);
 "@
@@ -4575,11 +4592,91 @@ function NavigationPaneExpand
 	{
 		"Disable"
 		{
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name NavPaneExpandToCurrentFolder -Force -ErrorAction Ignore
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name NavPaneExpandToCurrentFolder -PropertyType DWord -Value 0 -Force
 		}
 		"Enable"
 		{
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name NavPaneExpandToCurrentFolder -PropertyType DWord -Value 1 -Force
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	Recommended section in Start Menu
+
+	.PARAMETER Hide
+	Remove Recommended section in Start Menu
+
+	.PARAMETER Show
+	Do not remove Recommended section in Start Menu (default value)
+
+	.EXAMPLE
+	StartRecommendedSection -Hide
+
+	.EXAMPLE
+	StartRecommendedSection -Show
+
+	.NOTES
+	Current user
+#>
+function StartRecommendedSection
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Hide"
+		)]
+		[switch]
+		$Hide,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Show"
+		)]
+		[switch]
+		$Show
+	)
+
+	# Windows 11 Home not supported
+	$EditionID = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").EditionID
+	if ($EditionID -match "Home" -or ($EditionID -match "Core"))
+	{
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+		return
+	}
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Type CLEAR
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Hide"
+		{
+			if (-not (Test-Path -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer))
+			{
+				New-Item -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Force
+			}
+			if (-not (Test-Path -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Education))
+			{
+				New-Item -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Education -Force
+			}
+			New-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Education -Name IsEducationEnvironment -PropertyType DWord -Value 1 -Force
+
+			Set-Policy -Scope User -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Type DWORD -Value 1
+		}
+		"Show"
+		{
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Education -Name IsEducationEnvironment -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Start -Name HideRecommendedSection -Force -ErrorAction Ignore
+			Set-Policy -Scope User -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Type CLEAR
 		}
 	}
 }
@@ -4632,13 +4729,13 @@ function OneDrive
 		[switch]
 		$Install,
 
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Install"
-		)]
 		[switch]
 		$AllUsers
 	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\Policies\Microsoft\Windows\OneDrive -Name DisableFileSyncNGSC -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\OneDrive -Name DisableFileSyncNGSC -Type CLEAR
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -4648,17 +4745,19 @@ function OneDrive
 			if (-not $UninstallString)
 			{
 				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message $Localization.Skipped -Verbose
+				Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+				Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 				return
 			}
 
-			# Check whether user is logged into OneDrive (Microsoft account)
+			# Checking whether user is logged into OneDrive (Microsoft account)
 			$UserEmail = Get-ItemProperty -Path HKCU:\Software\Microsoft\OneDrive\Accounts\Personal -Name UserEmail -ErrorAction Ignore
 			if ($UserEmail)
 			{
 				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message $Localization.Skipped -Verbose
+				Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+				Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 				return
 			}
@@ -4668,7 +4767,7 @@ function OneDrive
 
 			Stop-Process -Name OneDrive, OneDriveSetup, FileCoAuth -Force -ErrorAction Ignore
 
-			# Getting link to the OneDriveSetup.exe and its' argument(s)
+			# Getting link to the OneDriveSetup.exe and its argument(s)
 			[string[]]$OneDriveSetup = ($UninstallString -replace("\s*/", ",/")).Split(",").Trim()
 			if ($OneDriveSetup.Count -eq 2)
 			{
@@ -4690,10 +4789,11 @@ function OneDrive
 					# The system does not move the file until the operating system is restarted
 					# The system moves the file immediately after AUTOCHK is executed, but before creating any paging files
 					$Script:Signature = @{
-						Namespace        = "WinAPI"
-						Name             = "DeleteFiles"
-						Language         = "CSharp"
-						MemberDefinition = @"
+						Namespace          = "WinAPI"
+						Name               = "DeleteFiles"
+						Language           = "CSharp"
+						CompilerParameters = $CompilerParameters
+						MemberDefinition   = @"
 public enum MoveFileFlags
 {
 	MOVEFILE_DELAY_UNTIL_REBOOT = 0x00000004
@@ -4746,12 +4846,12 @@ public static bool MarkFileDelete (string sourcefile)
 			# Getting the OneDrive folder path and replacing quotes if exist
 			$OneDriveFolder = (Split-Path -Path (Split-Path -Path $OneDriveSetup[0] -Parent)) -replace '"', ""
 
-			# Do not restart the File Explorer process automatically if it stops in order to unload libraries
+			# Do not restart File Explorer process automatically if it stops in order to unload libraries
 			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name AutoRestartShell -PropertyType DWord -Value 0 -Force
-			# Kill all explorer instances but only one in case enabled to launch folder windows in a separate process
+			# Kill all explorer instances in case "launch folder windows in a separate process" enabled
 			Get-Process -Name explorer | Stop-Process -Force
 			Start-Sleep -Seconds 3
-			# Restart the File Explorer process automatically if it stops in order to unload libraries
+			# Restart File Explorer process automatically if it stops in order to unload libraries
 			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name AutoRestartShell -PropertyType DWord -Value 1 -Force
 
 			# Attempt to unregister FileSyncShell64.dll and remove
@@ -4791,7 +4891,8 @@ public static bool MarkFileDelete (string sourcefile)
 			if ($OneDrive)
 			{
 				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message $Localization.Skipped -Verbose
+				Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+				Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 				return
 			}
@@ -4804,29 +4905,17 @@ public static bool MarkFileDelete (string sourcefile)
 				if ($AllUsers)
 				{
 					# Install OneDrive for all users
-					Start-Process -FilePath $env:SystemRoot\System32\OneDriveSetup.exe -ArgumentList "/allusers" -Wait
+					Start-Process -FilePath $env:SystemRoot\System32\OneDriveSetup.exe -ArgumentList "/allusers"
 				}
 				else
 				{
-					Start-Process -FilePath $env:SystemRoot\System32\OneDriveSetup.exe -Wait
+					Start-Process -FilePath $env:SystemRoot\System32\OneDriveSetup.exe
 				}
 			}
 			else
 			{
 				try
 				{
-					# Check the internet connection
-					$Parameters = @{
-						Name        = "dns.msftncsi.com"
-						Server      = "1.1.1.1"
-						DnsOnly     = $true
-						ErrorAction = "Stop"
-					}
-					if ((Resolve-DnsName @Parameters).IPAddress -notcontains "131.107.255.255")
-					{
-						return
-					}
-
 					# Downloading the latest OneDrive installer 64-bit
 					Write-Information -MessageData "" -InformationAction Continue
 					Write-Verbose -Message $Localization.OneDriveDownloading -Verbose
@@ -4843,7 +4932,7 @@ public static bool MarkFileDelete (string sourcefile)
 					# Remove invalid chars
 					[xml]$OneDriveXML = $Content -replace "ï»¿", ""
 
-					$OneDriveURL = ($OneDriveXML).root.update.amd64binary.url | Select-Object -Index 1
+					$OneDriveURL = $OneDriveXML.root.update.amd64binary.url | Select-Object -Index 1
 					$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
 					$Parameters = @{
 						Uri             = $OneDriveURL
@@ -4856,7 +4945,7 @@ public static bool MarkFileDelete (string sourcefile)
 					if ($AllUsers)
 					{
 						# Install OneDrive for all users to %ProgramFiles%
-						Start-Process -FilePath $env:SystemRoot\SysWOW64\OneDriveSetup.exe -ArgumentList "/allusers" -Wait
+						Start-Process -FilePath $env:SystemRoot\SysWOW64\OneDriveSetup.exe -ArgumentList "/allusers"
 					}
 					else
 					{
@@ -4865,12 +4954,13 @@ public static bool MarkFileDelete (string sourcefile)
 
 					Remove-Item -Path "$DownloadsFolder\OneDriveSetup.exe" -Force
 				}
-				catch [System.ComponentModel.Win32Exception]
+				catch [System.Net.WebException]
 				{
-					Write-Warning -Message $Localization.NoInternetConnection
-					Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
-
+					Write-Warning -Message ($Localization.NoResponse -f "https://oneclient.sfx.ms")
+					Write-Error -Message ($Localization.NoResponse -f "https://oneclient.sfx.ms") -ErrorAction SilentlyContinue
 					Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+					return
 				}
 			}
 
@@ -4885,7 +4975,6 @@ public static bool MarkFileDelete (string sourcefile)
 #endregion OneDrive
 
 #region System
-#region StorageSense
 <#
 	.SYNOPSIS
 	Storage Sense
@@ -4924,142 +5013,41 @@ function StorageSense
 		$Disable
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\StorageSense -Name AllowStorageSenseGlobal -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\StorageSense -Name AllowStorageSenseGlobal -Type CLEAR
+
+	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy))
+	{
+		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -ItemType Directory -Force
+	}
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Enable"
 		{
-			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy))
-			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -ItemType Directory -Force
-			}
+			# Turn on Storage Sense
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01 -PropertyType DWord -Value 1 -Force
+
+			# Turn on automatic cleaning up temporary system and app files
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 1 -Force
+
+			# Run Storage Sense every month
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 30 -Force
 		}
 		"Disable"
 		{
-			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy))
-			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -ItemType Directory -Force
-			}
+			# Turn off Storage Sense
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01 -PropertyType DWord -Value 0 -Force
+
+			# Turn off automatic cleaning up temporary system and app files
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 0 -Force
+
+			# Run Storage Sense during low free disk space
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 0 -Force
 		}
 	}
 }
-
-<#
-	.SYNOPSIS
-	Clean up of temporary files
-
-	.PARAMETER Enable
-	Turn on automatic cleaning up temporary system and app files
-
-	.PARAMETER Disable
-	Turn off automatic cleaning up temporary system and app files
-
-	.EXAMPLE
-	StorageSenseTempFiles -Enable
-
-	.EXAMPLE
-	StorageSenseTempFiles -Disable
-
-	.NOTES
-	Current user
-#>
-function StorageSenseTempFiles
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			if ((Get-ItemPropertyValue -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01) -eq "1")
-			{
-				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 1 -Force
-			}
-		}
-		"Disable"
-		{
-			if ((Get-ItemPropertyValue -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01) -eq "1")
-			{
-				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 0 -Force
-			}
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Storage Sense running frequency
-
-	.PARAMETER Month
-	Run Storage Sense every month
-
-	.PARAMETER Default
-	Run Storage Sense during low free disk space
-
-	.EXAMPLE
-	StorageSenseFrequency -Month
-
-	.EXAMPLE
-	StorageSenseFrequency -Default
-
-	.NOTES
-	Current user
-#>
-function StorageSenseFrequency
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Month"
-		)]
-		[switch]
-		$Month,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Default"
-		)]
-		[switch]
-		$Default
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Month"
-		{
-			if ((Get-ItemPropertyValue -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01) -eq "1")
-			{
-				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 30 -Force
-			}
-		}
-		"Default"
-		{
-			if ((Get-ItemPropertyValue -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01) -eq "1")
-			{
-				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 0 -Force
-			}
-		}
-	}
-}
-
-#endregion StorageSense
 
 <#
 	.SYNOPSIS
@@ -5111,290 +5099,6 @@ function Hibernation
 		"Enable"
 		{
 			POWERCFG /HIBERNATE ON
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	The %TEMP% environment variable path
-
-	.PARAMETER SystemDrive
-	Change the %TEMP% environment variable path to %SystemDrive%\Temp
-
-	.PARAMETER Default
-	Change the %TEMP% environment variable path to %LOCALAPPDATA%\Temp
-
-	.EXAMPLE
-	TempFolder -SystemDrive
-
-	.EXAMPLE
-	TempFolder -Default
-
-	.NOTES
-	Machine-wide
-#>
-function TempFolder
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "SystemDrive"
-		)]
-		[switch]
-		$SystemDrive,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Default"
-		)]
-		[switch]
-		$Default
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"SystemDrive"
-		{
-			if ((Get-LocalUser | Where-Object -FilterScript {$_.Enabled}).Count -gt 1)
-			{
-				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message $Localization.Skipped -Verbose
-
-				return
-			}
-
-			# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-			# https://github.com/PowerShell/PowerShell/issues/21070
-			if ((Get-Item -Path $env:TEMP).FullName -eq "$env:SystemDrive\Temp")
-			{
-				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message $Localization.Skipped -Verbose
-
-				return
-			}
-
-			# Restart the Printer Spooler service (Spooler)
-			Restart-Service -Name Spooler -Force
-
-			# Stop OneDrive processes
-			Stop-Process -Name OneDrive, FileCoAuth -Force -ErrorAction Ignore
-
-			if (-not (Test-Path -Path $env:SystemDrive\Temp))
-			{
-				New-Item -Path $env:SystemDrive\Temp -ItemType Directory -Force
-			}
-
-			# Cleaning up folders
-			Remove-Item -Path $env:SystemRoot\Temp -Recurse -Force -ErrorAction Ignore
-			Get-Item -Path $env:TEMP -Force | Where-Object -FilterScript {$_.LinkType -ne "SymbolicLink"} | Remove-Item -Recurse -Force -ErrorAction Ignore
-
-			if (-not (Test-Path -Path $env:LOCALAPPDATA\Temp))
-			{
-				New-Item -Path $env:LOCALAPPDATA\Temp -ItemType Directory -Force
-			}
-
-			# If there are some files or folders left in %LOCALAPPDATA\Temp%
-			if ((Get-ChildItem -Path $env:TEMP -Force -ErrorAction Ignore | Measure-Object).Count -ne 0)
-			{
-				# https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexa
-				# The system does not move the file until the operating system is restarted
-				# The system moves the file immediately after AUTOCHK is executed, but before creating any paging files
-				$Signature = @{
-					Namespace        = "WinAPI"
-					Name             = "DeleteFiles"
-					Language         = "CSharp"
-					MemberDefinition = @"
-public enum MoveFileFlags
-{
-	MOVEFILE_DELAY_UNTIL_REBOOT = 0x00000004
-}
-
-[DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-static extern bool MoveFileEx(string lpExistingFileName, string lpNewFileName, MoveFileFlags dwFlags);
-
-public static bool MarkFileDelete (string sourcefile)
-{
-	return MoveFileEx(sourcefile, null, MoveFileFlags.MOVEFILE_DELAY_UNTIL_REBOOT);
-}
-"@
-				}
-
-				if (-not ("WinAPI.DeleteFiles" -as [type]))
-				{
-					Add-Type @Signature
-				}
-
-				try
-				{
-					Get-ChildItem -Path $env:TEMP -Recurse -Force -ErrorAction Ignore | Remove-Item -Recurse -Force -ErrorAction Stop
-				}
-				catch
-				{
-					# If files are in use remove them at the next boot
-					Get-ChildItem -Path $env:TEMP -Recurse -Force -ErrorAction Ignore | ForEach-Object -Process {[WinAPI.DeleteFiles]::MarkFileDelete($_.FullName)}
-				}
-
-				$SymbolicLinkTask = @"
-Get-ChildItem -Path `$env:LOCALAPPDATA\Temp -Recurse -Force | Remove-Item -Recurse -Force
-
-Get-Item -Path `$env:LOCALAPPDATA\Temp -Force | Where-Object -FilterScript {`$_.LinkType -ne """SymbolicLink"""} | Remove-Item -Recurse -Force
-New-Item -Path `$env:LOCALAPPDATA\Temp -ItemType SymbolicLink -Value `$env:SystemDrive\Temp -Force
-
-Unregister-ScheduledTask -TaskName SymbolicLink -Confirm:`$false
-"@
-
-				# Create a temporary scheduled task to create a symbolic link to the %SystemDrive%\Temp folder
-				$Action     = New-ScheduledTaskAction -Execute powershell.exe -Argument "-WindowStyle Hidden -Command $SymbolicLinkTask"
-				$Trigger    = New-ScheduledTaskTrigger -AtLogon -User $env:USERNAME
-				$Settings   = New-ScheduledTaskSettingsSet -Compatibility Win8
-				$Principal  = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Highest
-				$Parameters = @{
-					TaskName  = "SymbolicLink"
-					Principal = $Principal
-					Action    = $Action
-					Settings  = $Settings
-					Trigger   = $Trigger
-				}
-				Register-ScheduledTask @Parameters -Force
-			}
-			else
-			{
-				# Create a symbolic link to the %SystemDrive%\Temp folder
-				New-Item -Path $env:LOCALAPPDATA\Temp -ItemType SymbolicLink -Value $env:SystemDrive\Temp -Force
-			}
-
-			# Change the %TEMP% environment variable path to %LOCALAPPDATA%\Temp
-			# The additional registry key creating are needed to fix the property type of the keys: SetEnvironmentVariable creates them with the "String" type instead of "ExpandString" as by default
-			[Environment]::SetEnvironmentVariable("TMP", "$env:SystemDrive\Temp", "User")
-			[Environment]::SetEnvironmentVariable("TMP", "$env:SystemDrive\Temp", "Machine")
-			[Environment]::SetEnvironmentVariable("TMP", "$env:SystemDrive\Temp", "Process")
-			New-ItemProperty -Path HKCU:\Environment -Name TMP -PropertyType ExpandString -Value $env:SystemDrive\Temp -Force
-
-			[Environment]::SetEnvironmentVariable("TEMP", "$env:SystemDrive\Temp", "User")
-			[Environment]::SetEnvironmentVariable("TEMP", "$env:SystemDrive\Temp", "Machine")
-			[Environment]::SetEnvironmentVariable("TEMP", "$env:SystemDrive\Temp", "Process")
-			New-ItemProperty -Path HKCU:\Environment -Name TEMP -PropertyType ExpandString -Value $env:SystemDrive\Temp -Force
-
-			New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -Name TMP -PropertyType ExpandString -Value $env:SystemDrive\Temp -Force
-		}
-		"Default"
-		{
-			# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-			# https://github.com/PowerShell/PowerShell/issues/21070
-			if ((Get-Item -Path $env:TEMP).FullName -eq "$env:LOCALAPPDATA\Temp")
-			{
-				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message $Localization.Skipped -Verbose
-
-				return
-			}
-
-			# Restart the Printer Spooler service (Spooler)
-			Restart-Service -Name Spooler -Force
-
-			# Stop OneDrive processes
-			Stop-Process -Name OneDrive, FileCoAuth -Force -ErrorAction Ignore
-
-			# Remove a symbolic link to the %SystemDrive%\Temp folder
-			if (Get-Item -Path $env:LOCALAPPDATA\Temp -Force -ErrorAction Ignore | Where-Object -FilterScript {$_.LinkType -eq "SymbolicLink"})
-			{
-				(Get-Item -Path $env:LOCALAPPDATA\Temp -Force).Delete()
-			}
-
-			if (-not (Test-Path -Path $env:SystemRoot\Temp))
-			{
-				New-Item -Path $env:SystemRoot\Temp -ItemType Directory -Force
-			}
-			if (-not (Test-Path -Path $env:LOCALAPPDATA\Temp))
-			{
-				New-Item -Path $env:LOCALAPPDATA\Temp -ItemType Directory -Force
-			}
-
-			# Removing folders
-			# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-			# https://github.com/PowerShell/PowerShell/issues/21070
-			Remove-Item -Path $((Get-Item -Path $env:TEMP).FullName) -Recurse -Force -ErrorAction Ignore
-
-			if ((Get-ChildItem -Path $env:TEMP -Force -ErrorAction Ignore | Measure-Object).Count -ne 0)
-			{
-				# https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexa
-				# The system does not move the file until the operating system is restarted
-				# The system moves the file immediately after AUTOCHK is executed, but before creating any paging files
-				$Signature = @{
-					Namespace        = "WinAPI"
-					Name             = "DeleteFiles"
-					Language         = "CSharp"
-					MemberDefinition = @"
-public enum MoveFileFlags
-{
-	MOVEFILE_DELAY_UNTIL_REBOOT = 0x00000004
-}
-
-[DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-static extern bool MoveFileEx(string lpExistingFileName, string lpNewFileName, MoveFileFlags dwFlags);
-
-public static bool MarkFileDelete (string sourcefile)
-{
-	return MoveFileEx(sourcefile, null, MoveFileFlags.MOVEFILE_DELAY_UNTIL_REBOOT);
-}
-"@
-				}
-
-				if (-not ("WinAPI.DeleteFiles" -as [type]))
-				{
-					Add-Type @Signature
-				}
-
-				try
-				{
-					# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-					# https://github.com/PowerShell/PowerShell/issues/21070
-					Remove-Item -Path $((Get-Item -Path $env:TEMP).FullName) -Recurse -Force -ErrorAction Stop
-				}
-				catch
-				{
-					# If files are in use remove them at the next boot
-					Get-ChildItem -Path $env:TEMP -Recurse -Force | ForEach-Object -Process {[WinAPI.DeleteFiles]::MarkFileDelete($_.FullName)}
-				}
-
-				# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-				# https://github.com/PowerShell/PowerShell/issues/21070
-				$TempFolder = (Get-Item -Path $env:TEMP).FullName
-				$TempFolderCleanupTask = @"
-Remove-Item -Path "$TempFolder" -Recurse -Force
-Unregister-ScheduledTask -TaskName TemporaryTask -Confirm:`$false
-"@
-
-				# Create a temporary scheduled task to clean up the temporary folder
-				$Action     = New-ScheduledTaskAction -Execute powershell.exe -Argument "-WindowStyle Hidden -Command $TempFolderCleanupTask"
-				$Trigger    = New-ScheduledTaskTrigger -AtLogon -User $env:USERNAME
-				$Settings   = New-ScheduledTaskSettingsSet -Compatibility Win8
-				$Principal  = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Highest
-				$Parameters = @{
-					TaskName  = "TemporaryTask"
-					Principal = $Principal
-					Action    = $Action
-					Settings  = $Settings
-					Trigger   = $Trigger
-				}
-				Register-ScheduledTask @Parameters -Force
-			}
-
-			# Change the %TEMP% environment variable path to %LOCALAPPDATA%\Temp
-			[Environment]::SetEnvironmentVariable("TMP", "$env:LOCALAPPDATA\Temp", "User")
-			[Environment]::SetEnvironmentVariable("TMP", "$env:SystemRoot\TEMP", "Machine")
-			[Environment]::SetEnvironmentVariable("TMP", "$env:LOCALAPPDATA\Temp", "Process")
-			New-ItemProperty -Path HKCU:\Environment -Name TMP -PropertyType ExpandString -Value "%USERPROFILE%\AppData\Local\Temp" -Force
-
-			[Environment]::SetEnvironmentVariable("TEMP", "$env:LOCALAPPDATA\Temp", "User")
-			[Environment]::SetEnvironmentVariable("TEMP", "$env:SystemRoot\TEMP", "Machine")
-			[Environment]::SetEnvironmentVariable("TEMP", "$env:LOCALAPPDATA\Temp", "Process")
-			New-ItemProperty -Path HKCU:\Environment -Name TEMP -PropertyType ExpandString -Value "%USERPROFILE%\AppData\Local\Temp" -Force
-
-			New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -Name TMP -PropertyType ExpandString -Value "%SystemRoot%\TEMP" -Force
-			New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -Name TEMP -PropertyType ExpandString -Value "%SystemRoot%\TEMP" -Force
 		}
 	}
 }
@@ -5458,7 +5162,7 @@ function Win32LongPathLimit
 	Display Stop error code when BSoD occurs
 
 	.PARAMETER Disable
-	Do not Stop error code when BSoD occurs
+	Do not display stop error code when BSoD occurs
 
 	.EXAMPLE
 	BSoDStopError -Enable
@@ -5539,6 +5243,26 @@ function AdminApprovalMode
 		$Default
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorUser -PropertyType DWord -Value 3 -Force
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableInstallerDetection -PropertyType DWord -Value 1 -Force
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ValidateAdminCodeSignatures -PropertyType DWord -Value 0 -Force
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableSecureUIAPaths -PropertyType DWord -Value 1 -Force
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableLUA -PropertyType DWord -Value 1 -Force
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name PromptOnSecureDesktop -PropertyType DWord -Value 1 -Force
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableVirtualization -PropertyType DWord -Value 1 -Force
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableUIADesktopToggle -PropertyType DWord -Value 1 -Force
+
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name FilterAdministratorToken -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorUser -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableInstallerDetection -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ValidateAdminCodeSignatures -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableSecureUIAPaths -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableLUA -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name PromptOnSecureDesktop -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableVirtualization -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableUIADesktopToggle -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Never"
@@ -5548,57 +5272,6 @@ function AdminApprovalMode
 		"Default"
 		{
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -PropertyType DWord -Value 5 -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Access to mapped drives from app running with elevated permissions with Admin Approval Mode enabled
-
-	.PARAMETER Enable
-	Turn on access to mapped drives from app running with elevated permissions with Admin Approval Mode enabled
-
-	.PARAMETER Disable
-	Turn off access to mapped drives from app running with elevated permissions with Admin Approval Mode enabled
-
-	.EXAMPLE
-	MappedDrivesAppElevatedAccess -Enable
-
-	.EXAMPLE
-	MappedDrivesAppElevatedAccess -Disable
-
-	.NOTES
-	Machine-wide
-#>
-function MappedDrivesAppElevatedAccess
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableLinkedConnections -PropertyType DWord -Value 1 -Force
-		}
-		"Disable"
-		{
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableLinkedConnections -Force -ErrorAction Ignore
 		}
 	}
 }
@@ -5640,6 +5313,10 @@ function DeliveryOptimization
 		[switch]
 		$Enable
 	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization -Name DODownloadMode -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization -Name DODownloadMode -Type CLEAR
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -5692,6 +5369,8 @@ function WindowsManageDefaultPrinter
 		[switch]
 		$Enable
 	)
+
+	Set-Policy -Scope User -Path "Software\Microsoft\Windows NT\CurrentVersion\Windows" -Name LegacyDefaultPrinterMode -Type CLEAR
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -5764,6 +5443,9 @@ function WindowsFeatures
 
 		# Microsoft XPS Document Writer
 		"Printing-XPSServices-Features",
+
+		# Recall
+		"Recall"
 
 		# Work Folders Client
 		"WorkFolders-Client"
@@ -5881,7 +5563,7 @@ function WindowsFeatures
 
 		[void]$Window.Close()
 
-		$SelectedFeatures | ForEach-Object -Process {Write-Verbose $_.DisplayName -Verbose}
+		$SelectedFeatures | ForEach-Object -Process {Write-Verbose -Message $_.DisplayName -Verbose}
 		$SelectedFeatures | Disable-WindowsOptionalFeature -Online -NoRestart
 	}
 
@@ -5945,14 +5627,14 @@ function WindowsFeatures
 	{
 		"Enable"
 		{
-			$State = @("Disabled", "DisablePending")
-			$ButtonContent = $Localization.Enable
+			$State           = @("Disabled", "DisablePending")
+			$ButtonContent   = $Localization.Enable
 			$ButtonAdd_Click = {EnableButton}
 		}
 		"Disable"
 		{
-			$State = @("Enabled", "EnablePending")
-			$ButtonContent = $Localization.Disable
+			$State           = @("Enabled", "EnablePending")
+			$ButtonContent   = $Localization.Disable
 			$ButtonAdd_Click = {DisableButton}
 		}
 	}
@@ -5985,7 +5667,8 @@ function WindowsFeatures
 
 	Add-Type -AssemblyName System.Windows.Forms
 
-	Get-Process | Where-Object -FilterScript {(($_.ProcessName -eq "powershell") -or ($_.ProcessName -eq "WindowsTerminal")) -and ($_.MainWindowTitle -match "Sophia Script for Windows 11")} | ForEach-Object -Process {
+	# We cannot use Get-Process -Id $PID as script might be invoked via Terminal with different $PID
+	Get-Process -Name powershell, WindowsTerminal -ErrorAction Ignore | Where-Object -FilterScript {$_.MainWindowTitle -match "Sophia Script for Windows 11"} | ForEach-Object -Process {
 		# Show window, if minimized
 		[WinAPI.ForegroundWindow]::ShowWindowAsync($_.MainWindowHandle, 10)
 
@@ -6062,13 +5745,7 @@ function WindowsCapabilities
 	# The following optional features will have their checkboxes checked
 	[string[]]$CheckedCapabilities = @(
 		# Steps Recorder
-		"App.StepsRecorder*",
-
-		# Microsoft Quick Assist
-		"App.Support.QuickAssist*",
-
-		# WordPad
-		"Microsoft.Windows.WordPad*"
+		"App.StepsRecorder*"
 	)
 
 	# The following optional features will have their checkboxes unchecked
@@ -6223,19 +5900,28 @@ function WindowsCapabilities
 
 	function InstallButton
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		# Extract the localized "Please wait..." string from shell32.dll
-		Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
-
-		[void]$Window.Close()
-
-		$SelectedCapabilities | ForEach-Object -Process {Write-Verbose -Message $_.DisplayName -Verbose}
-		$SelectedCapabilities | Where-Object -FilterScript {$_.Name -in ((Get-WindowsCapability -Online).Name)} | Add-WindowsCapability -Online
-
-		if ([string]$SelectedCapabilities.Name -match "Browser.InternetExplorer")
+		try
 		{
 			Write-Information -MessageData "" -InformationAction Continue
-			Write-Warning -Message $Localization.RestartWarning
+			# Extract the localized "Please wait..." string from shell32.dll
+			Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+
+			[void]$Window.Close()
+
+			$SelectedCapabilities | ForEach-Object -Process {Write-Verbose -Message $_.DisplayName -Verbose}
+			$SelectedCapabilities | Where-Object -FilterScript {$_.Name -in ((Get-WindowsCapability -Online).Name)} | Add-WindowsCapability -Online
+
+			if ([string]$SelectedCapabilities.Name -match "Browser.InternetExplorer")
+			{
+				Write-Information -MessageData "" -InformationAction Continue
+				Write-Warning -Message $Localization.RestartWarning
+			}
+		}
+		catch [System.Runtime.InteropServices.COMException]
+		{
+			Write-Warning -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice")
+			Write-Error -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice") -ErrorAction SilentlyContinue
+			Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 		}
 	}
 
@@ -6287,28 +5973,17 @@ function WindowsCapabilities
 		{
 			try
 			{
-				# Check the internet connection
-				$Parameters = @{
-					Name        = "dns.msftncsi.com"
-					Server      = "1.1.1.1"
-					DnsOnly     = $true
-					ErrorAction = "Stop"
-				}
-				if ((Resolve-DnsName @Parameters).IPAddress -notcontains "131.107.255.255")
-				{
-					return
-				}
-
 				$State = "NotPresent"
 				$ButtonContent = $Localization.Install
 				$ButtonAdd_Click = {InstallButton}
 			}
 			catch [System.ComponentModel.Win32Exception]
 			{
-				Write-Warning -Message $Localization.NoInternetConnection
-				Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
-
+				Write-Warning -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice")
+				Write-Error -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice") -ErrorAction SilentlyContinue
 				Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+				return
 			}
 		}
 		"Uninstall"
@@ -6347,7 +6022,8 @@ function WindowsCapabilities
 
 	Add-Type -AssemblyName System.Windows.Forms
 
-	Get-Process | Where-Object -FilterScript {(($_.ProcessName -eq "powershell") -or ($_.ProcessName -eq "WindowsTerminal")) -and ($_.MainWindowTitle -match "Sophia Script for Windows 11")} | ForEach-Object -Process {
+	# We cannot use Get-Process -Id $PID as script might be invoked via Terminal with different $PID
+	Get-Process -Name powershell, WindowsTerminal -ErrorAction Ignore | Where-Object -FilterScript {$_.MainWindowTitle -match "Sophia Script for Windows 11"} | ForEach-Object -Process {
 		# Show window, if minimized
 		[WinAPI.ForegroundWindow]::ShowWindowAsync($_.MainWindowHandle, 10)
 
@@ -6412,18 +6088,19 @@ function UpdateMicrosoftProducts
 		$Disable
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name AllowMUUpdateService -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name AllowMUUpdateService -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Enable"
 		{
-			(New-Object -ComObject Microsoft.Update.ServiceManager).AddService2("7971f918-a847-4430-9279-4a52d1efe18d", 7, "")
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name AllowMUUpdateService -PropertyType DWord -Value 1 -Force
 		}
 		"Disable"
 		{
-			if (((New-Object -ComObject Microsoft.Update.ServiceManager).Services | Where-Object -FilterScript {$_.ServiceID -eq "7971f918-a847-4430-9279-4a52d1efe18d"}).IsDefaultAUService)
-			{
-				(New-Object -ComObject Microsoft.Update.ServiceManager).RemoveService("7971f918-a847-4430-9279-4a52d1efe18d")
-			}
+			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name AllowMUUpdateService -Force -ErrorAction Ignore
 		}
 	}
 }
@@ -6465,6 +6142,10 @@ function RestartNotification
 		[switch]
 		$Hide
 	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetAutoRestartNotificationDisable -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetAutoRestartNotificationDisable -Type CLEAR
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -6517,6 +6198,12 @@ function RestartDeviceAfterUpdate
 		$Disable
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursEnd, ActiveHoursStart, SetActiveHours -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursEnd -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursStart -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetActiveHours -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Enable"
@@ -6568,6 +6255,16 @@ function ActiveHours
 		$Manually
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name NoAutoRebootWithLoggedOnUsers, AlwaysAutoRebootAtScheduledTime -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name NoAutoRebootWithLoggedOnUsers -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name AlwaysAutoRebootAtScheduledTime -Type CLEAR
+
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursEnd, ActiveHoursStart, SetActiveHours -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursEnd -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursStart -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetActiveHours -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Automatically"
@@ -6618,6 +6315,11 @@ function WindowsLatestUpdate
 		[switch]
 		$Enable
 	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name AllowOptionalContent, SetAllowOptionalContent -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name AllowOptionalContent -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetAllowOptionalContent -Type CLEAR
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -6672,6 +6374,10 @@ function PowerPlan
 		[switch]
 		$Balanced
 	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Power\PowerSettings -Name ActivePowerScheme -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Power\PowerSettings -Name ActivePowerScheme -Type CLEAR
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -6731,12 +6437,28 @@ function NetworkAdaptersSavePower
 	# Extract the localized "Please wait..." string from shell32.dll
 	Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
 
-	if (Get-NetAdapter -Physical | Where-Object -FilterScript {($_.Status -eq "Up") -and $_.MacAddress})
+	# Checking whether there's an adapter that has AllowComputerToTurnOffDevice property to manage
+	# We need also check for adapter status per some laptops have many equal adapters records in adapters list
+	$Adapters = Get-NetAdapter -Physical | Where-Object -FilterScript {$_.MacAddress -and ($_.Status -eq "Up")} | Get-NetAdapterPowerManagement | Where-Object -FilterScript {$_.AllowComputerToTurnOffDevice -ne "Unsupported"}
+	if (-not $Adapters)
 	{
-		$PhysicalAdaptersStatusUp = @((Get-NetAdapter -Physical | Where-Object -FilterScript {($_.Status -eq "Up") -and $_.MacAddress}).Name)
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+		return
 	}
 
-	$Adapters = Get-NetAdapter -Physical | Where-Object -FilterScript {$_.MacAddress} | Get-NetAdapterPowerManagement | Where-Object -FilterScript {$_.AllowComputerToTurnOffDevice -ne "Unsupported"}
+	$PhysicalAdaptersStatusUp = @(Get-NetAdapter -Physical | Where-Object -FilterScript {($_.Status -eq "Up") -and $_.MacAddress})
+
+	# Checking whether PC is currently connected to a Wi-Fi network
+	# NetConnectionStatus 2 is Wi-Fi
+	$InterfaceIndex = (Get-CimInstance -ClassName Win32_NetworkAdapter -Namespace root/CIMV2 | Where-Object -FilterScript {$_.NetConnectionStatus -eq 2}).InterfaceIndex
+	if (Get-NetAdapter -Physical | Where-Object -FilterScript {($_.Status -eq "Up") -and ($_.PhysicalMediaType -eq "Native 802.11") -and ($_.InterfaceIndex -eq $InterfaceIndex)})
+	{
+		# Get currently connected Wi-Fi network SSID
+		$SSID = (Get-NetConnectionProfile).Name
+	}
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -6762,9 +6484,17 @@ function NetworkAdaptersSavePower
 	# Otherwise functions below will indicate that there is no the Internet connection
 	if ($PhysicalAdaptersStatusUp)
 	{
+		# If Wi-Fi network was used
+		if ($SSID)
+		{
+			Write-Verbose -Message $SSID -Verbose
+			# Connect to it
+			netsh wlan connect name=$SSID
+		}
+
 		while
 		(
-			Get-NetAdapter -Physical -Name $PhysicalAdaptersStatusUp | Where-Object -FilterScript {($_.Status -eq "Disconnected") -and $_.MacAddress}
+			Get-NetAdapter -Physical -Name $PhysicalAdaptersStatusUp.Name | Where-Object -FilterScript {($_.Status -eq "Disconnected") -and $_.MacAddress}
 		)
 		{
 			Write-Information -MessageData "" -InformationAction Continue
@@ -6772,146 +6502,6 @@ function NetworkAdaptersSavePower
 			Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
 
 			Start-Sleep -Seconds 2
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Internet Protocol Version 6 (TCP/IPv6) component
-
-	.PARAMETER Disable
-	Disable the Internet Protocol Version 6 (TCP/IPv6) component for all network connections if your ISP doesn't support it
-
-	.PARAMETER Enable
-	Enable the Internet Protocol Version 6 (TCP/IPv6) component for all network connections if your ISP supports it
-
-	.PARAMETER PreferIPv4overIPv6
-	Enable the Internet Protocol Version 6 (TCP/IPv6) component for all network connections if your ISP supports it. Prefer IPv4 over IPv6
-
-	.EXAMPLE
-	IPv6Component -Disable
-
-	.EXAMPLE
-	IPv6Component -Enable
-
-	.EXAMPLE
-	IPv6Component -PreferIPv4overIPv6
-
-	.NOTES
-	Before invoking the function, a check will be run whether your ISP supports the IPv6 protocol using https://ipify.org
-
-	.NOTES
-	Current user
-#>
-function IPv6Component
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "PreferIPv4overIPv6"
-		)]
-		[switch]
-		$PreferIPv4overIPv6
-	)
-
-	Write-Information -MessageData "" -InformationAction Continue
-	# Extract the localized "Please wait..." string from shell32.dll
-	Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
-
-	try
-	{
-		# Check the internet connection
-		$Parameters = @{
-			Name        = "dns.msftncsi.com"
-			Server      = "1.1.1.1"
-			DnsOnly     = $true
-			ErrorAction = "Stop"
-		}
-		if ((Resolve-DnsName @Parameters).IPAddress -notcontains "131.107.255.255")
-		{
-			return
-		}
-
-		try
-		{
-			# Check whether the https://ipify.org site is alive
-			$Parameters = @{
-				Uri              = "https://ipify.org"
-				Method           = "Head"
-				DisableKeepAlive = $true
-				UseBasicParsing  = $true
-			}
-			if (-not (Invoke-WebRequest @Parameters).StatusDescription)
-			{
-				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message $Localization.Skipped -Verbose
-
-				return
-			}
-
-			# Check whether the ISP supports IPv6 protocol using https://ipify.org
-			$Parameters = @{
-				Uri             = "https://api64.ipify.org?format=json"
-				UseBasicParsing = $true
-				Verbose         = $true
-			}
-			$IPAddress = (Invoke-RestMethod @Parameters).ip
-		}
-		catch [System.Net.WebException]
-		{
-			Write-Warning -Message ($Localization.NoResponse -f "https://ipify.org")
-			Write-Error -Message ($Localization.NoResponse -f "https://ipify.org") -ErrorAction SilentlyContinue
-
-			Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-		}
-	}
-	catch [System.ComponentModel.Win32Exception]
-	{
-		Write-Warning -Message $Localization.NoInternetConnection
-		Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
-
-		Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-	}
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Disable"
-		{
-			if ($IPAddress -notmatch ":")
-			{
-				Disable-NetAdapterBinding -Name * -ComponentID ms_tcpip6
-			}
-		}
-		"Enable"
-		{
-			if ($IPAddress -match ":")
-			{
-				Enable-NetAdapterBinding -Name * -ComponentID ms_tcpip6
-			}
-		}
-		"PreferIPv4overIPv6"
-		{
-			if ($IPVersion -match ":")
-			{
-				Enable-NetAdapterBinding -Name * -ComponentID ms_tcpip6
-				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters -Name DisabledComponents -PropertyType DWord -Value 32 -Force
-			}
 		}
 	}
 }
@@ -6990,7 +6580,7 @@ function InputMethod
 	Set-UserShellFolderLocation -Default
 
 	.NOTES
-	User files or folders won't me moved to a new location
+	User files or folders won't be moved to a new location
 
 	.NOTES
 	Current user
@@ -7033,7 +6623,7 @@ function Set-UserShellFolderLocation
 		https://docs.microsoft.com/en-us/windows/win32/api/shlobj_core/nf-shlobj_core-shgetknownfolderpath
 
 		.NOTES
-		User files or folders won't me moved to a new location
+		User files or folders won't be moved to a new location
 	#>
 	function Set-UserShellFolder
 	{
@@ -7073,19 +6663,20 @@ function Set-UserShellFolderLocation
 			)
 
 			$KnownFolders = @{
-				"Desktop"   = @("B4BFCC3A-DB2C-424C-B029-7FE99A87C641");
-				"Documents" = @("FDD39AD0-238F-46AF-ADB4-6C85480369C7", "f42ee2d3-909f-4907-8871-4c22fc0bf756");
-				"Downloads" = @("374DE290-123F-4565-9164-39C4925E467B", "7d83ee9b-2244-4e70-b1f5-5404642af1e4");
-				"Music"     = @("4BD8D571-6D19-48D3-BE97-422220080E43", "a0c69a99-21c8-4671-8703-7934162fcf1d");
-				"Pictures"  = @("33E28130-4E1E-4676-835A-98395C3BC3BB", "0ddd015d-b06c-45d5-8c4c-f59713854639");
-				"Videos"    = @("18989B1D-99B5-455B-841C-AB7C74E4DDFC", "35286a68-3c57-41a1-bbb1-0eae73d76c95");
+				"Desktop"   = @("B4BFCC3A-DB2C-424C-B029-7FE99A87C641")
+				"Documents" = @("FDD39AD0-238F-46AF-ADB4-6C85480369C7", "f42ee2d3-909f-4907-8871-4c22fc0bf756")
+				"Downloads" = @("374DE290-123F-4565-9164-39C4925E467B", "7d83ee9b-2244-4e70-b1f5-5404642af1e4")
+				"Music"     = @("4BD8D571-6D19-48D3-BE97-422220080E43", "a0c69a99-21c8-4671-8703-7934162fcf1d")
+				"Pictures"  = @("33E28130-4E1E-4676-835A-98395C3BC3BB", "0ddd015d-b06c-45d5-8c4c-f59713854639")
+				"Videos"    = @("18989B1D-99B5-455B-841C-AB7C74E4DDFC", "35286a68-3c57-41a1-bbb1-0eae73d76c95")
 			}
 
 			$Signature = @{
-				Namespace        = "WinAPI"
-				Name             = "KnownFolders"
-				Language         = "CSharp"
-				MemberDefinition = @"
+				Namespace          = "WinAPI"
+				Name               = "KnownFolders"
+				Language           = "CSharp"
+				CompilerParameters = $CompilerParameters
+				MemberDefinition   = @"
 [DllImport("shell32.dll")]
 public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, IntPtr token, [MarshalAs(UnmanagedType.LPWStr)] string path);
 "@
@@ -7133,21 +6724,23 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
                           "IconFile=%SystemRoot%\System32\shell32.dll",
                           "IconIndex=-235"
 			"Downloads" = "",
-                          "[.ShellClassInfo]","LocalizedResourceName=@%SystemRoot%\System32\shell32.dll,-21798",
+                          "[.ShellClassInfo]",
+                          "LocalizedResourceName=@%SystemRoot%\System32\shell32.dll,-21798",
                           "IconResource=%SystemRoot%\System32\imageres.dll,-184"
 			"Music"     = "",
-                          "[.ShellClassInfo]","LocalizedResourceName=@%SystemRoot%\System32\shell32.dll,-21790",
+                          "[.ShellClassInfo]",
+                          "LocalizedResourceName=@%SystemRoot%\System32\shell32.dll,-21790",
                           "InfoTip=@%SystemRoot%\System32\shell32.dll,-12689",
                           "IconResource=%SystemRoot%\System32\imageres.dll,-108",
                           "IconFile=%SystemRoot%\System32\shell32.dll","IconIndex=-237"
-			"Pictures" = "",
+			"Pictures"  = "",
                           "[.ShellClassInfo]",
                           "LocalizedResourceName=@%SystemRoot%\System32\shell32.dll,-21779",
                           "InfoTip=@%SystemRoot%\System32\shell32.dll,-12688",
                           "IconResource=%SystemRoot%\System32\imageres.dll,-113",
                           "IconFile=%SystemRoot%\System32\shell32.dll",
                           "IconIndex=-236"
-			"Videos"   = "",
+			"Videos"    = "",
                           "[.ShellClassInfo]",
                           "LocalizedResourceName=@%SystemRoot%\System32\shell32.dll,-21791",
                           "InfoTip=@%SystemRoot%\System32\shell32.dll,-12690",
@@ -7187,20 +6780,18 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 	{
 		"Root"
 		{
-			# Store all fixed disks' letters to use them within Show-Menu function
-			# https://learn.microsoft.com/en-us/dotnet/api/system.io.drivetype?view=net-7.0#fields
-			$DriveLetters = @((Get-CimInstance -ClassName CIM_LogicalDisk | Where-Object -FilterScript {$_.DriveType -eq 3}).DeviceID | Sort-Object)
+			# Store all fixed disks' letters except C (system drive) to use them within Show-Menu function
+			# https://learn.microsoft.com/en-us/dotnet/api/system.io.drivetype
+			$DriveLetters = @((Get-CimInstance -ClassName CIM_LogicalDisk | Where-Object -FilterScript {($_.DriveType -eq 3) -and ($_.Name -ne $env:SystemDrive)}).DeviceID | Sort-Object)
 
-			if ($DriveLetters.Count -eq 1)
+			if (-not $DriveLetters)
 			{
 				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message $Localization.UserFolderLocationMove -Verbose
+				Write-Warning -Message $Localization.UserFolderLocationMove
+				Write-Error -Message $Localization.UserFolderLocationMove -ErrorAction SilentlyContinue
 
 				return
 			}
-
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message $Localization.RetrievingDrivesList -Verbose
 
 			# Desktop
 			Write-Information -MessageData "" -InformationAction Continue
@@ -7223,7 +6814,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7251,7 +6843,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7279,7 +6872,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7307,7 +6901,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7335,7 +6930,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7363,7 +6959,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7415,7 +7012,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7465,7 +7063,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7515,7 +7114,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7565,7 +7165,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7615,7 +7216,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7665,7 +7267,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7696,7 +7299,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7725,7 +7329,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7754,7 +7359,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7783,7 +7389,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7812,7 +7419,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7841,7 +7449,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					$Skip
 					{
 						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message $Localization.Skipped -Verbose
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -7946,64 +7555,77 @@ function WinPrtScrFolder
 		$Default
 	)
 
-	# Check whether user is logged into OneDrive (Microsoft account)
-	$UserEmail = Get-ItemProperty -Path HKCU:\Software\Microsoft\OneDrive\Accounts\Personal -Name UserEmail -ErrorAction Ignore
-	if ($UserEmail)
-	{
-		Write-Warning -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
-		Write-Error -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.Skipped -Verbose
-
-		return
-	}
-
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Desktop"
 		{
-			# Check how the script was invoked: via a preset or Function.ps1
-			# $_.File has no EndsWith() method
-			$PresetName = ((Get-PSCallStack).Position | Where-Object -FilterScript {($_.Text -eq "WinPrtScrFolder -Desktop") -or ($_.Text -match "Invoke-Expression")}).File | Where-Object -FilterScript {$_.EndsWith(".ps1") -and ($_ -notmatch "Functions.ps1")}
-			if ($PresetName)
+			# Checking whether user is logged into OneDrive (Microsoft account)
+			$UserEmail = Get-ItemProperty -Path HKCU:\Software\Microsoft\OneDrive\Accounts\Personal -Name UserEmail -ErrorAction Ignore
+			if ($UserEmail)
 			{
-				# Check whether a preset contains the "OneDrive -Uninstall" string uncommented out
-				if (Select-String -Path $PresetName -Pattern "OneDrive -Uninstall" -SimpleMatch)
-				{
-					# The string exists and is commented
-					$IsOneDriveToUninstall = (Select-String -Path $PresetName -Pattern "OneDrive -Uninstall" -SimpleMatch).Line.StartsWith("#") -eq $false
-				}
-				else
-				{
-					# The string doesn't exist
-					$IsOneDriveToUninstall = $false
-				}
+				Write-Information -MessageData "" -InformationAction Continue
+				Write-Warning -Message $Localization.OneDriveWarning
+				Write-Error -Message $Localization.OneDriveWarning -ErrorAction SilentlyContinue
 
-				$OneDriveInstalled = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -Force -ErrorAction Ignore
-				if ($IsOneDriveToUninstall -or (-not $OneDriveInstalled))
+				Write-Information -MessageData "" -InformationAction Continue
+				Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+				Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+				return
+			}
+
+			# Checking how the script was invoked: via a preset or Functions.ps1
+			# https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/get-variable
+			# This function works only if OneDrive was already uninstalled, or user is intended to uninstall "OneDrive -Uninstall" within commandline
+			$PresetName = (Get-Variable -Name MyInvocation -Scope Script).Value.PSCommandPath
+			$PSCallStack = (Get-PSCallStack).Position.Text
+			$OneDriveInstalled = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -Force -ErrorAction Ignore
+
+			# Checking whether function was called from Functions.ps1
+			if ($PresetName -match "Functions.ps1")
+			{
+				# Checking whether command contains "WinPrtScrFolder -Desktop"
+				if ($PSCallStack -match "WinPrtScrFolder -Desktop")
 				{
-					$DesktopFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Desktop
-					New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{B7BEDE81-DF94-4682-A7D8-57A52620B86F}" -PropertyType ExpandString -Value $DesktopFolder -Force
-				}
-				else
-				{
-					Write-Warning -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
-					Write-Error -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+					# Checking whether other commands contains "OneDrive -Uninstall" which means that user is intended to uninstall "OneDrive -Uninstall", or OneDrive was uinstalled
+					if (($PSCallStack -match "OneDrive -Uninstall") -or (-not $OneDriveInstalled))
+					{
+						$DesktopFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Desktop
+						New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{B7BEDE81-DF94-4682-A7D8-57A52620B86F}" -PropertyType ExpandString -Value $DesktopFolder -Force
+					}
+					else
+					{
+						Write-Warning -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
+						Write-Error -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+						Write-Information -MessageData "" -InformationAction Continue
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+					}
 				}
 			}
 			else
 			{
-				# A preset file isn't taking a part so we ignore it and check only whether OneDrive was already uninstalled
-				if (-not (Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -Force -ErrorAction Ignore))
+				# Checking whether function was called from Sophia.ps1, and preset contains the "OneDrive -Uninstall" string is uncommented that means OneDrive will be unistalled
+				if (Select-String -Path $PresetName -Pattern "OneDrive -Uninstall" -SimpleMatch)
 				{
-					$DesktopFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Desktop
-					New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{B7BEDE81-DF94-4682-A7D8-57A52620B86F}" -PropertyType ExpandString -Value $DesktopFolder -Force
-				}
-				else
-				{
-					Write-Warning -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
-					Write-Error -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+					# Checking whether string exists and is uncommented
+					$IsOneDriveToUninstall = (Select-String -Path $PresetName -Pattern "OneDrive -Uninstall" -SimpleMatch).Line.StartsWith("#") -eq $false
+					# Checking whether string exists and is uncommented, or OneDrive was uninstalled, or user called "OneDrive -Uninstall" from Sophia.ps1 alongside with "WinPrtScrFolder -Desktop"
+					if ($IsOneDriveToUninstall -or (-not $OneDriveInstalled) -or ($PSCallStack -match "OneDrive -Uninstall"))
+					{
+						$DesktopFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Desktop
+						New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{B7BEDE81-DF94-4682-A7D8-57A52620B86F}" -PropertyType ExpandString -Value $DesktopFolder -Force
+					}
+					else
+					{
+						Write-Warning -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
+						Write-Error -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+						Write-Information -MessageData "" -InformationAction Continue
+						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+					}
 				}
 			}
 		}
@@ -8055,6 +7677,19 @@ function RecommendedTroubleshooting
 		$Default
 	)
 
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -Force -ErrorAction Ignore
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection -Name MaxTelemetryAllowed -Force -ErrorAction Ignore
+	Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack -Name ShowedToastAtLevel -Force -ErrorAction Ignore
+
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -Type CLEAR
+
+	# Turn on Windows Error Reporting
+	Get-ScheduledTask -TaskName QueueReporting -ErrorAction Ignore | Enable-ScheduledTask
+	Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Windows Error Reporting" -Name Disabled -Force -ErrorAction Ignore
+
+	Get-Service -Name WerSvc | Set-Service -StartupType Manual
+	Get-Service -Name WerSvc | Start-Service
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Automatically"
@@ -8074,24 +7709,6 @@ function RecommendedTroubleshooting
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Name UserPreference -PropertyType DWord -Value 2 -Force
 		}
 	}
-
-	# Set Windows level of diagnostic data gathering to "Optional diagnostic data"
-	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack))
-	{
-		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack -Force
-	}
-	New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -PropertyType DWord -Value 3 -Force
-	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection -Name MaxTelemetryAllowed -PropertyType DWord -Value 3 -Force
-	New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack -Name ShowedToastAtLevel -PropertyType DWord -Value 3 -Force
-
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -Type DWORD -Value 1
-
-	# Turn on Windows Error Reporting
-	Get-ScheduledTask -TaskName QueueReporting | Enable-ScheduledTask
-	Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Windows Error Reporting" -Name Disabled -Force -ErrorAction Ignore
-
-	Get-Service -Name WerSvc | Set-Service -StartupType Manual
-	Get-Service -Name WerSvc | Start-Service
 }
 
 <#
@@ -8193,6 +7810,7 @@ function ReservedStorage
 			}
 			catch [System.Runtime.InteropServices.COMException]
 			{
+				Write-Warning -Message ($Localization.ReservedStorageIsInUse -f $MyInvocation.Line.Trim())
 				Write-Error -Message ($Localization.ReservedStorageIsInUse -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 			}
 		}
@@ -8347,6 +7965,8 @@ function CapsLock
 		$Enable
 	)
 
+	Remove-ItemProperty -Path "HKCU:\Keyboard Layout" -Name Attributes -Force -ErrorAction Ignore
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
@@ -8448,6 +8068,11 @@ function Autoplay
 		[switch]
 		$Enable
 	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer, HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoDriveTypeAutoRun -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoDriveTypeAutoRun -Type CLEAR
+	Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoDriveTypeAutoRun -Type CLEAR
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -8617,7 +8242,7 @@ function NetworkDiscovery
 		"Enable"
 		{
 			Set-NetFirewallRule -Group $FirewallRules -Profile Private -Enabled True
-			Set-NetFirewallRule -Profile Public, Private -Name FPS-SMB-In-TCP -Enabled True
+			Set-NetFirewallRule -Profile Private -Name FPS-SMB-In-TCP -Enabled True
 			Set-NetConnectionProfile -NetworkCategory Private
 		}
 		"Disable"
@@ -8650,7 +8275,7 @@ function NetworkDiscovery
 	Set-Association -ProgramPath "%ProgramFiles%\Notepad++\notepad++.exe" -Extension .txt -Icon "%ProgramFiles%\Notepad++\notepad++.exe,0"
 
 	.EXAMPLE
-	Set-Association -ProgramPath MSEdgeMHT -Extension .html
+	Set-Association -ProgramPath MSEdgeHTM -Extension .html
 
 	.LINK
 	https://github.com/DanysysTeam/PS-SFTA
@@ -8686,6 +8311,10 @@ function Set-Association
 		[string]
 		$Icon
 	)
+
+	# Microsoft has blocked write access to UserChoice key for .pdf extention and http/https protocols with KB5034765 release, so we have to write values with a copy of powershell.exe to bypass a UCPD driver restrictions
+	# UCPD driver tracks all executables to block the access to the registry so all registry records will be made within powershell_temp.exe in this function just in case
+	Copy-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Destination "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force
 
 	$ProgramPath = [System.Environment]::ExpandEnvironmentVariables($ProgramPath)
 
@@ -8744,11 +8373,12 @@ function Set-Association
 
 	#region functions
 	$Signature = @{
-		Namespace        = "WinAPI"
-		Name             = "Action"
-		Language         = "CSharp"
-		UsingNamespace   = "System.Text", "System.Security.AccessControl", "Microsoft.Win32"
-		MemberDefinition = @"
+		Namespace          = "WinAPI"
+		Name               = "Action"
+		Language           = "CSharp"
+		UsingNamespace     = "System.Text", "System.Security.AccessControl", "Microsoft.Win32"
+		CompilerParameters = $CompilerParameters
+		MemberDefinition   = @"
 [DllImport("advapi32.dll", CharSet = CharSet.Auto)]
 private static extern int RegOpenKeyEx(UIntPtr hKey, string subKey, int ulOptions, int samDesired, out UIntPtr hkResult);
 
@@ -8953,7 +8583,7 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 			$Extension
 		)
 
-		# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
+		# We have to use GetValue() due to "Set-StrictMode -Version Latest"
 		$OrigProgID = [Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Classes\$Extension", "", $null)
 		if ($OrigProgID)
 		{
@@ -8961,7 +8591,7 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 			$Script:RegisteredProgIDs += $OrigProgID
 		}
 
-		# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
+		# We have to use GetValue() due to "Set-StrictMode -Version Latest"
 		if ([Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Classes\$Extension", "", $null) -ne "")
 		{
 			# Save possible ProgIds history with extension
@@ -8977,7 +8607,7 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 		}
 
 		# If ProgId doesn't exist set the specified ProgId for the extensions
-		# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
+		# We have to use GetValue() due to "Set-StrictMode -Version Latest"
 		if (-not [Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Classes\$Extension", "", $null))
 		{
 			if (-not (Test-Path -Path "HKCU:\Software\Classes\$Extension"))
@@ -8994,8 +8624,8 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 		}
 		New-ItemProperty -Path "HKCU:\Software\Classes\$Extension\OpenWithProgids" -Name $ProgId -PropertyType None -Value ([byte[]]@()) -Force
 
-		# Set the system ProgId to the extension parameters for the File Explorer to the possible options for the assignment, and if absent set the specified ProgId
-		# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
+		# Set the system ProgId to the extension parameters for File Explorer to the possible options for the assignment, and if absent set the specified ProgId
+		# We have to use GetValue() due to "Set-StrictMode -Version Latest"
 		if ($OrigProgID)
 		{
 			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\OpenWithProgids"))
@@ -9023,7 +8653,26 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 		{
 			New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice" -Force
 		}
-		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice" -Name ProgId -PropertyType String -Value $ProgID -Force
+
+		# We need to remove DENY permission set for user before setting a value
+		if (@(".pdf", "http", "https") -contains $Extension)
+		{
+			# https://powertoe.wordpress.com/2010/08/28/controlling-registry-acl-permissions-with-powershell/
+			$Key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey("Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice",[Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree,[System.Security.AccessControl.RegistryRights]::ChangePermissions)
+			$ACL = $key.GetAccessControl()
+			$Principal = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+			# https://learn.microsoft.com/en-us/dotnet/api/system.security.accesscontrol.filesystemrights
+			$Rule = New-Object -TypeName System.Security.AccessControl.RegistryAccessRule -ArgumentList ($Principal,"FullControl","Deny")
+			$ACL.RemoveAccessRule($Rule)
+			$Key.SetAccessControl($ACL)
+
+			# We need to use here an approach with "-Command & {}" as there's a variable inside
+			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice' -Name ProgId -PropertyType String -Value $ProgID -Force}"
+		}
+		else
+		{
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice" -Name ProgId -PropertyType String -Value $ProgID -Force
+		}
 
 		# Getting a hash based on the time of the section's last modification. After creating and setting the first parameter
 		$ProgHash = Get-Hash -ProgId $ProgId -Extension $Extension -SubKey "Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
@@ -9032,10 +8681,19 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 		{
 			New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice" -Force
 		}
-		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice" -Name Hash -PropertyType String -Value $ProgHash -Force
+
+		if (@(".pdf", "http", "https") -contains $Extension)
+		{
+			# We need to use here an approach with "-Command & {}" as there's a variable inside
+			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice' -Name Hash -PropertyType String -Value $ProgHash -Force}"
+		}
+		else
+		{
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice" -Name Hash -PropertyType String -Value $ProgHash -Force
+		}
 
 		# Setting a block on changing the UserChoice section
-		# Due to "Set-StrictMode -Version Latest" we have to use OpenSubKey()
+		# We have to use OpenSubKey() due to "Set-StrictMode -Version Latest"
 		$OpenSubKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey("Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice", "ReadWriteSubTree", "TakeOwnership")
 		if ($OpenSubKey)
 		{
@@ -9068,7 +8726,7 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 		)
 
 		# If there is the system extension ProgId, write it to the already configured by default
-		# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
+		# We have to use GetValue() due to "Set-StrictMode -Version Latest"
 		if ([Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Classes\$Extension", "", $null))
 		{
 			if (-not (Test-Path -Path Registry::HKEY_USERS\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\FileAssociations\ProgIds))
@@ -9079,7 +8737,7 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 		}
 
 		# Setting 'NoOpenWith' for all registered the extension ProgIDs
-		# Due to "Set-StrictMode -Version Latest" we have to check everything
+		# We have to check everything due to "Set-StrictMode -Version Latest"
 		if (Get-Item -Path "Registry::HKEY_CLASSES_ROOT\$Extension\OpenWithProgids" -ErrorAction Ignore)
 		{
 			[psobject]$OpenSubkey = (Get-Item -Path "Registry::HKEY_CLASSES_ROOT\$Extension\OpenWithProgids" -ErrorAction Ignore).Property
@@ -9108,18 +8766,18 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 			}
 		}
 
-		# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
+		# We have to use GetValue() due to "Set-StrictMode -Version Latest"
 		if ([Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\KindMap", $Extension, $null))
 		{
 			$picture = (Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\KindMap -Name $Extension -ErrorAction Ignore).$Extension
 		}
-		# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
+		# We have to use GetValue() due to "Set-StrictMode -Version Latest"
 		if ([Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Classes\PBrush\CLSID", "", $null))
 		{
 			$PBrush = (Get-ItemProperty -Path HKLM:\SOFTWARE\Classes\PBrush\CLSID -Name "(default)" -ErrorAction Ignore)."(default)"
 		}
 
-		# Due to "Set-StrictMode -Version Latest" we have to check everything
+		# We have to check everything due to "Set-StrictMode -Version Latest"
 		if (Get-Variable -Name picture -ErrorAction Ignore)
 		{
 			if (($picture -eq "picture") -and $PBrush)
@@ -9128,7 +8786,7 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 			}
 		}
 
-		# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
+		# We have to use GetValue() due to "Set-StrictMode -Version Latest"
 		if (([Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\KindMap", $Extension, $null)) -eq "picture")
 		{
 			$Script:RegisteredProgIDs += "PBrush"
@@ -9162,9 +8820,9 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 		Clear-Variable -Name UserRegisteredProgIDs -Force -ErrorAction Ignore
 		[array]$UserRegisteredProgIDs = @()
 
-		foreach ($Item in (Get-Item -Path "HKCU:\SOFTWARE\RegisteredApplications").Property)
+		foreach ($Item in (Get-Item -Path "HKCU:\Software\RegisteredApplications").Property)
 		{
-			$Subkey = (Get-ItemProperty -Path "HKCU:\SOFTWARE\RegisteredApplications" -Name $Item -ErrorAction Ignore).$Item
+			$Subkey = (Get-ItemProperty -Path "HKCU:\Software\RegisteredApplications" -Name $Item -ErrorAction Ignore).$Item
 			if ($Subkey)
 			{
 				if (Test-Path -Path "HKCU:\$Subkey\$Associations")
@@ -9214,10 +8872,11 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 		)
 
 		$Signature = @{
-			Namespace        = "WinAPI"
-			Name             = "PatentHash"
-			Language         = "CSharp"
-			MemberDefinition = @"
+			Namespace          = "WinAPI"
+			Name               = "PatentHash"
+			Language           = "CSharp"
+			CompilerParameters = $CompilerParameters
+			MemberDefinition   = @"
 public static uint[] WordSwap(byte[] a, int sz, byte[] md5)
 {
 	if (sz < 2 || (sz & 1) == 1)
@@ -9334,7 +8993,7 @@ public static long MakeLong(uint left, uint right)
 "@
 		}
 
-		if ( -not ("WinAPI.PatentHash" -as [type]))
+		if (-not ("WinAPI.PatentHash" -as [type]))
 		{
 			Add-Type @Signature
 		}
@@ -9434,7 +9093,7 @@ public static long MakeLong(uint left, uint right)
 		New-ItemProperty -Path "HKCU:\Software\Classes\$ProgId\DefaultIcon" -Name "(default)" -PropertyType String -Value $Icon -Force
 	}
 
-	New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ApplicationAssociationToasts -Name "$($ProgID)_$($Extension)"  -Type DWord -Value 0 -Force
+	New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ApplicationAssociationToasts -Name "$($ProgID)_$($Extension)"  -Type DWord -Value 0 -Force
 
 	if ($Extension.Contains("."))
 	{
@@ -9449,9 +9108,30 @@ public static long MakeLong(uint left, uint right)
 		{
 			New-Item -Path "HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice" -Force
 		}
+
 		$ProgHash = Get-Hash -ProgId $ProgId -Extension $Extension -SubKey "Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice"
-		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice" -Name ProgId -PropertyType String -Value $ProgId -Force
-		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice" -Name Hash -PropertyType String -Value $ProgHash -Force
+
+		# We need to remove DENY permission set for user before setting a value
+		if (@(".pdf", "http", "https") -contains $Extension)
+		{
+			# https://powertoe.wordpress.com/2010/08/28/controlling-registry-acl-permissions-with-powershell/
+			$Key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey("Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice",[Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree,[System.Security.AccessControl.RegistryRights]::ChangePermissions)
+			$ACL = $key.GetAccessControl()
+			$Principal = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+			# https://learn.microsoft.com/en-us/dotnet/api/system.security.accesscontrol.filesystemrights
+			$Rule = New-Object -TypeName System.Security.AccessControl.RegistryAccessRule -ArgumentList ($Principal,"FullControl","Deny")
+			$ACL.RemoveAccessRule($Rule)
+			$Key.SetAccessControl($ACL)
+
+			# We need to use here an approach with "-Command & {}" as there's a variable inside
+			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice' -Name ProgId -PropertyType String -Value $ProgID -Force}"
+			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice' -Name Hash -PropertyType String -Value $ProgHash -Force}"
+		}
+		else
+		{
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice" -Name ProgId -PropertyType String -Value $ProgId -Force
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice" -Name Hash -PropertyType String -Value $ProgHash -Force
+		}
 	}
 
 	# Setting additional parameters to comply with the requirements before configuring the extension
@@ -9459,10 +9139,11 @@ public static long MakeLong(uint left, uint right)
 
 	# Refresh the desktop icons
 	$Signature = @{
-		Namespace        = "WinAPI"
-		Name             = "Signature"
-		Language         = "CSharp"
-		MemberDefinition = @"
+		Namespace          = "WinAPI"
+		Name               = "Signature"
+		Language           = "CSharp"
+		CompilerParameters = $CompilerParameters
+		MemberDefinition   = @"
 [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = false)]
 private static extern int SHChangeNotify(int eventId, int flags, IntPtr item1, IntPtr item2);
 
@@ -9479,6 +9160,8 @@ public static void Refresh()
 	}
 
 	[WinAPI.Signature]::Refresh()
+
+	Remove-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force
 }
 
 <#
@@ -9492,7 +9175,7 @@ public static void Refresh()
 	Associations will be exported as Application_Associations.json file in script root folder
 
 	.NOTES
-	Import exported JSON file after a clean installation. You have to install all apps according to an exported JSON file to restore all associations
+	You need to install all apps according to an exported JSON file to restore all associations
 
 	.NOTES
 	Machine-wide
@@ -9528,7 +9211,7 @@ function Export-Associations
 				# ProgrammPath
 				if ([Microsoft.Win32.Registry]::GetValue("HKEY_CURRENT_USER\Software\Classes\$($_.ProgId)\shell\open\command", "", $null))
 				{
-					$PartProgramPath = (Get-ItemPropertyValue -Path "HKCU:\SOFTWARE\Classes\$($_.ProgId)\Shell\Open\Command" -Name "(default)").Trim()
+					$PartProgramPath = (Get-ItemPropertyValue -Path "HKCU:\Software\Classes\$($_.ProgId)\Shell\Open\Command" -Name "(default)").Trim()
 					$Program = $PartProgramPath.Substring(0, ($PartProgramPath.IndexOf(".exe") + 4)).Trim('"')
 
 					if ($Program)
@@ -9670,11 +9353,8 @@ function Export-Associations
 	.SYNOPSIS
 	Import all Windows associations
 
-	.PARAMETER Path
-	Import all Windows associations from a JSON file
-
 	.EXAMPLE
-	Export-Associations -Path D:\
+	Import-Associations
 
 	.NOTES
 	You have to install all apps according to an exported JSON file to restore all associations
@@ -9704,10 +9384,8 @@ function Import-Associations
 		}
 		catch [System.Exception]
 		{
+			Write-Warning -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
 			Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message $Localization.Skipped -Verbose
 
 			return
 		}
@@ -9802,8 +9480,8 @@ function DefaultTerminalApp
 		}
 		"ConsoleHost"
 		{
-			New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationConsole -PropertyType String -Value "{00000000-0000-0000-0000-000000000000}" -Force
-			New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationTerminal -PropertyType String -Value "{00000000-0000-0000-0000-000000000000}" -Force
+			New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationConsole -PropertyType String -Value "{B23D10C0-E52E-411E-9D5B-C09FDF709C7D}" -Force
+			New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationTerminal -PropertyType String -Value "{B23D10C0-E52E-411E-9D5B-C09FDF709C7D}" -Force
 		}
 	}
 }
@@ -9813,7 +9491,7 @@ function DefaultTerminalApp
 	Install the latest Microsoft Visual C++ Redistributable Packages 2015–2022 (x86/x64)
 
 	.EXAMPLE
-	InstallVCRedist
+	Install-VCRedist -Redistributables 2015_2022_x86, 2015_2022_x64
 
 	.LINK
 	https://docs.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
@@ -9821,81 +9499,166 @@ function DefaultTerminalApp
 	.NOTES
 	Machine-wide
 #>
-function InstallVCRedist
+function Install-VCRedist
 {
+	[CmdletBinding()]
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Redistributables"
+		)]
+		[ValidateSet("2015_2022_x86", "2015_2022_x64")]
+		[string[]]
+		$Redistributables
+	)
+
+	# Get latest build version
+	# https://github.com/ScoopInstaller/Extras/blob/master/bucket/vcredist2022.json
 	try
 	{
-		# Check the internet connection
 		$Parameters = @{
-			Name        = "dns.msftncsi.com"
-			Server      = "1.1.1.1"
-			DnsOnly     = $true
-			ErrorAction = "Stop"
+			Uri             = "https://raw.githubusercontent.com/ScoopInstaller/Extras/refs/heads/master/bucket/vcredist2022.json"
+			UseBasicParsing = $true
+			Verbose         = $true
 		}
-		if ((Resolve-DnsName @Parameters).IPAddress -notcontains "131.107.255.255")
-		{
-			return
-		}
-
-		if ([System.Version](Get-AppxPackage -Name Microsoft.DesktopAppInstaller -ErrorAction Ignore).Version -ge [System.Version]"1.17")
-		{
-			# https://github.com/microsoft/winget-pkgs/tree/master/manifests/m/Microsoft/VCRedist/2015%2B
-			winget install --id=Microsoft.VCRedist.2015+.x86 --exact --force --accept-source-agreements
-			winget install --id=Microsoft.VCRedist.2015+.x64 --exact --force --accept-source-agreements
-
-			# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-			# https://github.com/PowerShell/PowerShell/issues/21070
-			Get-ChildItem -Path "$env:TEMP\WinGet" -Force -ErrorAction Ignore | Remove-Item -Recurse -Force -ErrorAction Ignore
-		}
-		else
-		{
-			$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
-			$Parameters = @{
-				Uri             = "https://aka.ms/vs/17/release/VC_redist.x86.exe"
-				OutFile         = "$DownloadsFolder\VC_redist.x86.exe"
-				UseBasicParsing = $true
-				Verbose         = $true
-			}
-			Invoke-WebRequest @Parameters
-
-			Start-Process -FilePath "$DownloadsFolder\VC_redist.x86.exe" -ArgumentList "/install /passive /norestart" -Wait
-
-			$Parameters = @{
-				Uri             = "https://aka.ms/vs/17/release/VC_redist.x64.exe"
-				OutFile         = "$DownloadsFolder\VC_redist.x64.exe"
-				UseBasicParsing = $true
-				Verbose         = $true
-			}
-			Invoke-WebRequest @Parameters
-
-			Start-Process -FilePath "$DownloadsFolder\VC_redist.x64.exe" -ArgumentList "/install /passive /norestart" -Wait
-
-			# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-			# https://github.com/PowerShell/PowerShell/issues/21070
-			$Paths = @(
-				"$DownloadsFolder\VC_redist.x86.exe",
-				"$DownloadsFolder\VC_redist.x64.exe",
-				"$env:TEMP\dd_vcredist_x86_*.log",
-				"$env:TEMP\dd_vcredist_amd64_*.log"
-			)
-			Get-ChildItem -Path $Paths -Recurse -Force | Remove-Item -Recurse -Force -ErrorAction Ignore
-		}
+		$LatestVCRedistVersion = (Invoke-RestMethod @Parameters).version
 	}
-	catch [System.ComponentModel.Win32Exception]
+	catch [System.Net.WebException]
 	{
-		Write-Warning -Message $Localization.NoInternetConnection
-		Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
+		$LatestVCRedistVersion = "0.0"
+	}
 
-		Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+	# Checking whether VC_redist builds installed
+	if (Test-Path -Path "$env:ProgramData\Package Cache\{e7802eac-3305-4da0-9378-e55d1ed05518}\VC_redist.x86.exe")
+	{
+		$VCredistx86Version = (Get-Item -Path "$env:ProgramData\Package Cache\{e7802eac-3305-4da0-9378-e55d1ed05518}\VC_redist.x86.exe").VersionInfo.FileVersion
+	}
+	else
+	{
+		$VCredistx86Version = "0.0"
+	}
+	if (Test-Path -Path "$env:ProgramData\Package Cache\{804e7d66-ccc2-4c12-84ba-476da31d103d}\VC_redist.x64.exe")
+	{
+		$VCredistx64Version = (Get-Item -Path "$env:ProgramData\Package Cache\{804e7d66-ccc2-4c12-84ba-476da31d103d}\VC_redist.x64.exe").VersionInfo.FileVersion
+	}
+	else
+	{
+		$VCredistx64Version = "0.0"
+	}
+
+	$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
+
+	foreach ($Redistributable in $Redistributables)
+	{
+		switch ($Redistributable)
+		{
+			2015_2022_x86
+			{
+				# Proceed if currently installed build is lower than available from Microsoft or json file is unreachable, or redistributable is not installed
+				if (([System.Version]$LatestVCRedistVersion -gt [System.Version]$VCredistx86Version) -or (($LatestVCRedistVersion -eq "0.0") -or ($VCredistx86Version -eq "0.0")))
+				{
+					try
+					{
+						$Parameters = @{
+							Uri             = "https://aka.ms/vs/17/release/VC_redist.x86.exe"
+							OutFile         = "$DownloadsFolder\VC_redist.x86.exe"
+							UseBasicParsing = $true
+							Verbose         = $true
+						}
+						Invoke-WebRequest @Parameters
+
+						Write-Information -MessageData "" -InformationAction Continue
+						Write-Verbose -Message "Visual C++ Redistributable x86" -Verbose
+						Write-Information -MessageData "" -InformationAction Continue
+
+						Start-Process -FilePath "$DownloadsFolder\VC_redist.x86.exe" -ArgumentList "/install /passive /norestart" -Wait
+
+						# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
+						# https://github.com/PowerShell/PowerShell/issues/21070
+						$Paths = @(
+							"$DownloadsFolder\VC_redist.x86.exe",
+							"$env:TEMP\dd_vcredist_x86_*.log"
+						)
+						Get-ChildItem -Path $Paths -Force | Remove-Item -Force -ErrorAction Ignore
+					}
+					catch [System.Net.WebException]
+					{
+						Write-Warning -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
+						Write-Error -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com") -ErrorAction SilentlyContinue
+						Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+						return
+					}
+				}
+				else
+				{
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Verbose -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -Verbose
+					Write-Error -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -ErrorAction SilentlyContinue
+				}
+			}
+			2015_2022_x64
+			{
+				# Proceed if currently installed build is lower than available from Microsoft or json file is unreachable, or redistributable is not installed
+				if (([System.Version]$LatestVCRedistVersion -gt [System.Version]$VCredistx64Version) -or (($LatestVCRedistVersion -eq "0.0") -or ($VCredistx64Version -eq "0.0")))
+				{
+					try
+					{
+						$Parameters = @{
+							Uri             = "https://aka.ms/vs/17/release/VC_redist.x64.exe"
+							OutFile         = "$DownloadsFolder\VC_redist.x64.exe"
+							UseBasicParsing = $true
+							Verbose         = $true
+						}
+						Invoke-WebRequest @Parameters
+					}
+					catch [System.Net.WebException]
+					{
+						Write-Warning -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
+						Write-Error -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com") -ErrorAction SilentlyContinue
+						Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+						return
+					}
+
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Verbose -Message "Visual C++ Redistributable x64" -Verbose
+					Write-Information -MessageData "" -InformationAction Continue
+
+					Start-Process -FilePath "$DownloadsFolder\VC_redist.x64.exe" -ArgumentList "/install /passive /norestart" -Wait
+
+					# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
+					# https://github.com/PowerShell/PowerShell/issues/21070
+					$Paths = @(
+						"$DownloadsFolder\VC_redist.x64.exe",
+						"$env:TEMP\dd_vcredist_amd64_*.log"
+					)
+					Get-ChildItem -Path $Paths -Force | Remove-Item -Force -ErrorAction Ignore
+				}
+				else
+				{
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Verbose -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -Verbose
+					Write-Error -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -ErrorAction SilentlyContinue
+				}
+			}
+		}
 	}
 }
 
 <#
 	.SYNOPSIS
-	Install the latest .NET Desktop Runtime 6, 7, 8 x64
+	Install the latest .NET Desktop Runtime 8, 9 x64
+
+	.PARAMETER NET8x64
+	Install the latest .NET Desktop Runtime 8 x64
+
+	.PARAMETER NET9x64
+	Install the latest .NET Desktop Runtime 9 x64
 
 	.EXAMPLE
-	InstallDotNetRuntimes -Runtimes NET6x64, NET7x64, NET8x64
+	Install-DotNetRuntimes -Runtimes NET8x64, NET9x64
 
 	.LINK
 	https://dotnet.microsoft.com/en-us/download/dotnet
@@ -9903,7 +9666,7 @@ function InstallVCRedist
 	.NOTES
 	Machine-wide
 #>
-function InstallDotNetRuntimes
+function Install-DotNetRuntimes
 {
 	[CmdletBinding()]
 	param
@@ -9912,167 +9675,171 @@ function InstallDotNetRuntimes
 			Mandatory = $true,
 			ParameterSetName = "Runtimes"
 		)]
-		[ValidateSet("NET6x64", "NET7x64", "NET8x64")]
+		[ValidateSet("NET8x64", "NET9x64")]
 		[string[]]
 		$Runtimes
 	)
 
-	try
-	{
-		# Check the internet connection
-		$Parameters = @{
-			Name        = "dns.msftncsi.com"
-			Server      = "1.1.1.1"
-			DnsOnly     = $true
-			ErrorAction = "Stop"
-		}
-		if ((Resolve-DnsName @Parameters).IPAddress -notcontains "131.107.255.255")
-		{
-			return
-		}
-	}
-	catch [System.ComponentModel.Win32Exception]
-	{
-		Write-Warning -Message $Localization.NoInternetConnection
-		Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
-
-		Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-	}
+	$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
 
 	foreach ($Runtime in $Runtimes)
 	{
 		switch ($Runtime)
 		{
-			NET6x64
-			{
-				if ([System.Version](Get-AppxPackage -Name Microsoft.DesktopAppInstaller -ErrorAction Ignore).Version -ge [System.Version]"1.17")
-				{
-					# https://github.com/microsoft/winget-pkgs/tree/master/manifests/m/Microsoft/DotNet/DesktopRuntime/6
-					# .NET Desktop Runtime 6 x64
-					winget install --id=Microsoft.DotNet.DesktopRuntime.6 --architecture x64 --exact --force --accept-source-agreements
-
-					# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-					# https://github.com/PowerShell/PowerShell/issues/21070
-					Get-ChildItem -Path "$env:TEMP\WinGet" -Force -ErrorAction Ignore | Remove-Item -Recurse -Force -ErrorAction Ignore
-				}
-				else
-				{
-					# Install .NET Desktop Runtime 6
-					# https://github.com/dotnet/core/blob/main/release-notes/releases-index.json
-					$Parameters = @{
-						Uri             = "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/6.0/releases.json"
-						Verbose         = $true
-						UseBasicParsing = $true
-					}
-					$LatestRelease = (Invoke-RestMethod @Parameters)."latest-release"
-					$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
-
-					# .NET Desktop Runtime 6 x64
-					$Parameters = @{
-						Uri             = "https://dotnetcli.azureedge.net/dotnet/Runtime/$LatestRelease/dotnet-runtime-$LatestRelease-win-x64.exe"
-						OutFile         = "$DownloadsFolder\dotnet-runtime-$LatestRelease-win-x64.exe"
-						UseBasicParsing = $true
-						Verbose         = $true
-					}
-					Invoke-WebRequest @Parameters
-
-					Start-Process -FilePath "$DownloadsFolder\dotnet-runtime-$LatestRelease-win-x64.exe" -ArgumentList "/install /passive /norestart" -Wait
-
-					# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-					# https://github.com/PowerShell/PowerShell/issues/21070
-					$Paths = @(
-						"$DownloadsFolder\dotnet-runtime-$LatestRelease-win-x64.exe",
-						"$env:TEMP\Microsoft_.NET_Runtime*.log"
-					)
-					Get-ChildItem -Path $Paths -Force -ErrorAction Ignore | Remove-Item -Recurse -Force -ErrorAction Ignore
-				}
-			}
-			NET7x64
-			{
-				if ([System.Version](Get-AppxPackage -Name Microsoft.DesktopAppInstaller -ErrorAction Ignore).Version -ge [System.Version]"1.17")
-				{
-					# https://github.com/microsoft/winget-pkgs/tree/master/manifests/m/Microsoft/DotNet/DesktopRuntime/7
-					# .NET Desktop Runtime 7 x64
-					winget install --id=Microsoft.DotNet.DesktopRuntime.7 --architecture x64 --exact --force --accept-source-agreements
-
-					# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-					# https://github.com/PowerShell/PowerShell/issues/21070
-					Get-ChildItem -Path "$env:TEMP\WinGet" -Force -ErrorAction Ignore | Remove-Item -Recurse -Force -ErrorAction Ignore
-				}
-				else
-				{
-					# .NET Desktop Runtime 7
-					# https://github.com/dotnet/core/blob/main/release-notes/releases-index.json
-					$Parameters = @{
-						Uri             = "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/7.0/releases.json"
-						Verbose         = $true
-						UseBasicParsing = $true
-					}
-					$LatestRelease = (Invoke-RestMethod @Parameters)."latest-release"
-					$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
-
-					# .NET Desktop Runtime 7 x64
-					$Parameters = @{
-						Uri             = "https://dotnetcli.azureedge.net/dotnet/Runtime/$LatestRelease/dotnet-runtime-$LatestRelease-win-x64.exe"
-						OutFile         = "$DownloadsFolder\dotnet-runtime-$LatestRelease-win-x64.exe"
-						UseBasicParsing = $true
-						Verbose         = $true
-					}
-					Invoke-WebRequest @Parameters
-
-					Start-Process -FilePath "$DownloadsFolder\dotnet-runtime-$LatestRelease-win-x64.exe" -ArgumentList "/install /passive /norestart" -Wait
-
-					# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-					# https://github.com/PowerShell/PowerShell/issues/21070
-					$Paths = @(
-						"$DownloadsFolder\dotnet-runtime-$LatestRelease-win-x64.exe",
-						"$env:TEMP\Microsoft_.NET_Runtime*.log"
-					)
-					Get-ChildItem -Path $Paths -Force -ErrorAction Ignore | Remove-Item -Recurse -Force -ErrorAction Ignore
-				}
-
-			}
 			NET8x64
 			{
-				if ([System.Version](Get-AppxPackage -Name Microsoft.DesktopAppInstaller -ErrorAction Ignore).Version -ge [System.Version]"1.17")
+				try
 				{
-					# .NET Desktop Runtime 8 x64
-					winget install --id=Microsoft.DotNet.DesktopRuntime.8 --architecture x64 --exact --force --accept-source-agreements
+					# Get latest build version
+					# https://github.com/dotnet/core/blob/main/release-notes/releases-index.json
+					$Parameters = @{
+						Uri             = "https://builds.dotnet.microsoft.com/dotnet/release-metadata/8.0/releases.json"
+						Verbose         = $true
+						UseBasicParsing = $true
+					}
+					$LatestNET8Version = (Invoke-RestMethod @Parameters)."latest-release"
+				}
+				catch [System.Net.WebException]
+				{
+					Write-Warning -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
+					Write-Error -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com") -ErrorAction SilentlyContinue
+					Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
-					# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-					# https://github.com/PowerShell/PowerShell/issues/21070
-					Get-ChildItem -Path "$env:TEMP\WinGet" -Force -ErrorAction Ignore | Remove-Item -Recurse -Force -ErrorAction Ignore
+					return
+				}
+
+				# Checking whether .NET 8 installed
+				if (Test-Path -Path "$env:ProgramData\Package Cache\*\dotnet-runtime-$LatestNET8Version-win-x64.exe")
+				{
+					# FileVersion has four properties while $LatestNET8Version has only three, unless the [System.Version] accelerator fails
+					$CurrentNET8Version = (Get-Item -Path "$env:ProgramData\Package Cache\*\dotnet-runtime-$LatestNET8Version-win-x64.exe").VersionInfo.FileVersion
+					$CurrentNET8Version = "{0}.{1}.{2}" -f $CurrentNET8Version.Split(".")
 				}
 				else
 				{
-					# .NET Desktop Runtime 8
-					# https://github.com/dotnet/core/blob/main/release-notes/releases-index.json
-					$Parameters = @{
-						Uri             = "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/8.0/releases.json"
-						Verbose         = $true
-						UseBasicParsing = $true
-					}
-					$LatestRelease = (Invoke-RestMethod @Parameters)."latest-release"
-					$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
+					$CurrentNET8Version = "0.0"
+				}
 
-					# .NET Desktop Runtime 8 x64
-					$Parameters = @{
-						Uri             = "https://dotnetcli.azureedge.net/dotnet/Runtime/$LatestRelease/dotnet-runtime-$LatestRelease-win-x64.exe"
-						OutFile         = "$DownloadsFolder\dotnet-runtime-$LatestRelease-win-x64.exe"
-						UseBasicParsing = $true
-						Verbose         = $true
+				# Proceed if currently installed build is lower than available from Microsoft or json file is unreachable, or .NET 8 is not installed at all
+				if (([System.Version]$LatestNET8Version -gt [System.Version]$CurrentNET8Version) -or ($CurrentNET8Version -eq "0.0"))
+				{
+					try
+					{
+						# .NET Desktop Runtime 8 x64
+						$Parameters = @{
+							Uri             = "https://builds.dotnet.microsoft.com/dotnet/Runtime/$LatestNET8Version/dotnet-runtime-$LatestNET8Version-win-x64.exe"
+							OutFile         = "$DownloadsFolder\dotnet-runtime-$LatestNET8Version-win-x64.exe"
+							UseBasicParsing = $true
+							Verbose         = $true
+						}
+						Invoke-WebRequest @Parameters
 					}
-					Invoke-WebRequest @Parameters
+					catch [System.Net.WebException]
+					{
+						Write-Warning -Message ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com")
+						Write-Error -Message ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com") -ErrorAction SilentlyContinue
+						Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
-					Start-Process -FilePath "$DownloadsFolder\dotnet-runtime-$LatestRelease-win-x64.exe" -ArgumentList "/install /passive /norestart" -Wait
+						return
+					}
+
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Verbose -Message ".NET $LatestNET8Version" -Verbose
+					Write-Information -MessageData "" -InformationAction Continue
+
+					Start-Process -FilePath "$DownloadsFolder\dotnet-runtime-$LatestNET8Version-win-x64.exe" -ArgumentList "/install /passive /norestart" -Wait
 
 					# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
 					# https://github.com/PowerShell/PowerShell/issues/21070
 					$Paths = @(
-						"$DownloadsFolder\dotnet-runtime-$LatestRelease-win-x64.exe",
+						"$DownloadsFolder\dotnet-runtime-$LatestNET8Version-win-x64.exe",
 						"$env:TEMP\Microsoft_.NET_Runtime*.log"
 					)
-					Get-ChildItem -Path $Paths -Force -ErrorAction Ignore | Remove-Item -Recurse -Force -ErrorAction Ignore
+					Get-ChildItem -Path $Paths -Force -ErrorAction Ignore | Remove-Item -Force -ErrorAction Ignore
+				}
+				else
+				{
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Verbose -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -Verbose
+					Write-Error -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -ErrorAction SilentlyContinue
+				}
+			}
+			NET9x64
+			{
+				try
+				{
+					# Get latest build version
+					# https://github.com/dotnet/core/blob/main/release-notes/releases-index.json
+					$Parameters = @{
+						Uri             = "https://builds.dotnet.microsoft.com/dotnet/release-metadata/9.0/releases.json"
+						Verbose         = $true
+						UseBasicParsing = $true
+					}
+					$LatestNET9Version = (Invoke-RestMethod @Parameters)."latest-release"
+				}
+				catch [System.Net.WebException]
+				{
+					Write-Warning -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
+					Write-Error -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com") -ErrorAction SilentlyContinue
+					Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+					return
+				}
+
+				# Checking whether .NET 9 installed
+				if (Test-Path -Path "$env:ProgramData\Package Cache\*\dotnet-runtime-$LatestNET9Version-win-x64.exe")
+				{
+					# FileVersion has four properties while $LatestNET9Version has only three, unless the [System.Version] accelerator fails
+					$CurrentNET9Version = (Get-Item -Path "$env:ProgramData\Package Cache\*\dotnet-runtime-$LatestNET9Version-win-x64.exe").VersionInfo.FileVersion
+					$CurrentNET9Version = "{0}.{1}.{2}" -f $CurrentNET9Version.Split(".")
+				}
+				else
+				{
+					$CurrentNET9Version = "0.0"
+				}
+
+				# Proceed if currently installed build is lower than available from Microsoft or json file is unreachable, or .NET 9 is not installed at all
+				if (([System.Version]$LatestNET9Version -gt [System.Version]$CurrentNET9Version) -or ($CurrentNET9Version -eq "0.0"))
+				{
+					try
+					{
+						# Downloading .NET Desktop Runtime 9 x64
+						$Parameters = @{
+							Uri             = "https://builds.dotnet.microsoft.com/dotnet/Runtime/$LatestNET9Version/dotnet-runtime-$LatestNET9Version-win-x64.exe"
+							OutFile         = "$DownloadsFolder\dotnet-runtime-$LatestNET9Version-win-x64.exe"
+							UseBasicParsing = $true
+							Verbose         = $true
+						}
+						Invoke-WebRequest @Parameters
+					}
+					catch [System.Net.WebException]
+					{
+						Write-Warning -Message ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com")
+						Write-Error -Message ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com") -ErrorAction SilentlyContinue
+						Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+						return
+					}
+
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Verbose -Message ".NET $LatestNET9Version" -Verbose
+					Write-Information -MessageData "" -InformationAction Continue
+
+					Start-Process -FilePath "$DownloadsFolder\dotnet-runtime-$LatestNET9Version-win-x64.exe" -ArgumentList "/install /passive /norestart" -Wait
+
+					# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
+					# https://github.com/PowerShell/PowerShell/issues/21070
+					$Paths = @(
+						"$DownloadsFolder\dotnet-runtime-$LatestNET9Version-win-x64.exe",
+						"$env:TEMP\Microsoft_.NET_Runtime*.log"
+					)
+					Get-ChildItem -Path $Paths -Force -ErrorAction Ignore | Remove-Item -Force -ErrorAction Ignore
+				}
+				else
+				{
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Verbose -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -Verbose
+					Write-Error -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -ErrorAction SilentlyContinue
 				}
 			}
 		}
@@ -10125,9 +9892,9 @@ function RKNBypass
 		"Enable"
 		{
 			# If current region is Russia
-			if (((Get-WinHomeLocation).GeoId -eq "203"))
+			if ((Get-WinHomeLocation).GeoId -eq "203")
 			{
-				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name AutoConfigURL -PropertyType String -Value "https://antizapret.prostovpn.org:8443/proxy.pac" -Force
+				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name AutoConfigURL -PropertyType String -Value "https://p.thenewone.lol:8443/proxy.pac" -Force
 			}
 		}
 		"Disable"
@@ -10135,87 +9902,28 @@ function RKNBypass
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name AutoConfigURL -Force -ErrorAction Ignore
 		}
 	}
-}
 
-<#
-	.SYNOPSIS
-	Enable all necessary dependencies (reboot may require) and open Microsoft Store WSA page to install it manually
-
-	.LINK
-	https://support.microsoft.com/en-us/windows/install-mobile-apps-and-the-amazon-appstore-f8d0abb5-44ad-47d8-b9fb-ad6b1459ff6c
-
-	.LINK
-	https://docs.microsoft.com/en-us/windows/android/wsa/
-
-	.LINK
-	https://apps.microsoft.com/store/detail/windows-subsystem-for-android™-with-amazon-appstore/9P3395VX91NR
-
-	.NOTES
-	Machine-wide
-#>
-function Install-WSA
-{
-	# Enable Virtual Machine Platform
-	if ((Get-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform).State -eq "Disabled")
+	$Signature = @{
+		Namespace          = "WinAPI"
+		Name               = "wininet"
+		Language           = "CSharp"
+		CompilerParameters = $CompilerParameters
+		MemberDefinition   = @"
+[DllImport("wininet.dll", SetLastError = true, CharSet=CharSet.Auto)]
+public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int dwBufferLength);
+"@
+	}
+	if (-not ("WinAPI.wininet" -as [type]))
 	{
-		Enable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform -NoRestart
-
-		Write-Warning -Message $Localization.RestartWarning
-		Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-
-		return
+		Add-Type @Signature
 	}
 
-	if (Get-AppxPackage -Name MicrosoftCorporationII.WindowsSubsystemForAndroid)
-	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.Skipped -Verbose
-
-		return
-	}
-
-	# Check whether Windows 11 is installed on an SSD
-	$DiskNumber = (Get-Disk | Where-Object -FilterScript {$_.Isboot -and $_.IsSystem -and ($_.OperationalStatus -eq "Online")}).Number
-	if (Get-PhysicalDisk -DeviceNumber $DiskNumber | Where-Object -FilterScript {$_.MediaType -ne "SSD"})
-	{
-		Write-Warning -Message $Localization.SSDRequired
-
-		return
-	}
-
-	try
-	{
-		# Check the internet connection
-		$Parameters = @{
-			Name        = "dns.msftncsi.com"
-			Server      = "1.1.1.1"
-			DnsOnly     = $true
-			ErrorAction = "Stop"
-		}
-		if ((Resolve-DnsName @Parameters).IPAddress -notcontains "131.107.255.255")
-		{
-			return
-		}
-
-		if (((Get-WinHomeLocation).GeoId -ne "244"))
-		{
-			# Set Windows region to USA
-			$Script:Region = (Get-WinHomeLocation).GeoId
-			Set-WinHomeLocation -GeoId 244
-
-			$Script:RegionChanged = $true
-		}
-
-		# Open Misrosoft Store WSA page to install it manually
-		Start-Process -FilePath ms-windows-store://pdp/?ProductId=9P3395VX91NR
-	}
-	catch [System.ComponentModel.Win32Exception]
-	{
-		Write-Warning -Message $Localization.NoInternetConnection
-		Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
-
-		Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-	}
+	# Apply changed proxy settings
+	# https://learn.microsoft.com/en-us/windows/win32/wininet/option-flags
+	$INTERNET_OPTION_SETTINGS_CHANGED = 39
+	$INTERNET_OPTION_REFRESH          = 37
+	[WinAPI.wininet]::InternetSetOption(0, $INTERNET_OPTION_SETTINGS_CHANGED, 0, 0)
+	[WinAPI.wininet]::InternetSetOption(0, $INTERNET_OPTION_REFRESH, 0, 0)
 }
 
 <#
@@ -10223,7 +9931,7 @@ function Install-WSA
 	Desktop shortcut creation upon Microsoft Edge update
 
 	.PARAMETER Channels
-	List Microsoft Edge channels to prevent desktop shortcut creation upon its' update
+	List Microsoft Edge channels to prevent desktop shortcut creation upon its update
 
 	.PARAMETER Disable
 	Do not prevent desktop shortcut creation upon Microsoft Edge update
@@ -10258,12 +9966,18 @@ function PreventEdgeShortcutCreation
 		$Disable
 	)
 
-	if (($null -eq (Get-Package -Name "Microsoft Edge Update" -ProviderName Programs -ErrorAction Ignore)) -or ([System.Version](Get-Package -Name "Microsoft Edge Update" -ProviderName Programs -ErrorAction Ignore).Version -lt [System.Version]"1.3.128.0"))
+	if (-not (Get-Package -Name "Microsoft Edge" -ProviderName Programs -ErrorAction Ignore))
 	{
 		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.Skipped -Verbose
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
+	}
+
+	if (-not (Test-Path -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate))
+	{
+		New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Force
 	}
 
 	foreach ($Channel in $Channels)
@@ -10274,44 +9988,32 @@ function PreventEdgeShortcutCreation
 			{
 				if (Get-Package -Name "Microsoft Edge" -ProviderName Programs -ErrorAction Ignore)
 				{
-					if (-not (Test-Path -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate))
-					{
-						New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Force
-					}
 					New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}" -PropertyType DWord -Value 0 -Force
+					Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}" -Type DWORD -Value 3
 				}
 			}
 			Beta
 			{
 				if (Get-Package -Name "Microsoft Edge Beta" -ProviderName Programs -ErrorAction Ignore)
 				{
-					if (-not (Test-Path -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate))
-					{
-						New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Force
-					}
 					New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{2CD8A007-E189-409D-A2C8-9AF4EF3C72AA}" -PropertyType DWord -Value 0 -Force
+					Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}" -Type DWORD -Value 3
 				}
 			}
 			Dev
 			{
 				if (Get-Package -Name "Microsoft Edge Dev" -ProviderName Programs -ErrorAction Ignore)
 				{
-					if (-not (Test-Path -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate))
-					{
-						New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Force
-					}
 					New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{0D50BFEC-CD6A-4F9A-964C-C7416E3ACB10}" -PropertyType DWord -Value 0 -Force
+					Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}" -Type DWORD -Value 3
 				}
 			}
 			Canary
 			{
 				if (Get-Package -Name "Microsoft Edge Canary" -ProviderName Programs -ErrorAction Ignore)
 				{
-					if (-not (Test-Path -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate))
-					{
-						New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Force
-					}
 					New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{65C35B14-6C1D-4122-AC46-7148CC9D6497}" -PropertyType DWord -Value 0 -Force
+					Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}" -Type DWORD -Value 3
 				}
 			}
 		}
@@ -10326,57 +10028,11 @@ function PreventEdgeShortcutCreation
 			"CreateDesktopShortcut{65C35B14-6C1D-4122-AC46-7148CC9D6497}"
 		)
 		Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Name $Names -Force -ErrorAction Ignore
-	}
-}
 
-<#
-	.SYNOPSIS
-	Internal SATA drives up as removeable media in the taskbar notification area
-
-	.PARAMETER Disable
-	Prevent all internal SATA drives from showing up as removable media in the taskbar notification area
-
-	.PARAMETER Default
-	Show up all internal SATA drives as removeable media in the taskbar notification area
-
-	.EXAMPLE
-	SATADrivesRemovableMedia -Disable
-
-	.EXAMPLE
-	SATADrivesRemovableMedia -Default
-
-	.NOTES
-	Machine-wide
-#>
-function SATADrivesRemovableMedia
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Default"
-		)]
-		[switch]
-		$Default
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Disable"
-		{
-			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\storahci\Parameters\Device -Name TreatAsInternalPort -Type MultiString -Value @(0, 1, 2, 3, 4, 5) -Force
-		}
-		"Default"
-		{
-			Remove-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\storahci\Parameters\Device -Name TreatAsInternalPort -Force -ErrorAction Ignore
-		}
+		Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}" -Type CLEAR
+		Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{2CD8A007-E189-409D-A2C8-9AF4EF3C72AA}" -Type CLEAR
+		Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{0D50BFEC-CD6A-4F9A-964C-C7416E3ACB10}" -Type CLEAR
+		Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{65C35B14-6C1D-4122-AC46-7148CC9D6497}" -Type CLEAR
 	}
 }
 
@@ -10453,44 +10109,37 @@ function Install-WSL
 {
 	try
 	{
-		# Check the internet connection
+		# https://github.com/microsoft/WSL/blob/master/distributions/DistributionInfo.json
+		# wsl --list --online relies on Internet connection too, so it's much convenient to parse DistributionInfo.json, rather than parse a cmd output
 		$Parameters = @{
-			Name        = "dns.msftncsi.com"
-			Server      = "1.1.1.1"
-			DnsOnly     = $true
-			ErrorAction = "Stop"
+			Uri             = "https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json"
+			UseBasicParsing = $true
+			Verbose         = $true
 		}
-		if ((Resolve-DnsName @Parameters).IPAddress -notcontains "131.107.255.255")
-		{
-			return
+		$Distributions = (Invoke-RestMethod @Parameters).Distributions | ForEach-Object -Process {
+			[PSCustomObject]@{
+				"Distribution" = $_.FriendlyName
+				"Alias"        = $_.Name
+			}
 		}
+	}
+	catch [System.Net.WebException]
+	{
+		Write-Warning -Message ($Localization.NoResponse -f "https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json")
+		Write-Error -Message ($Localization.NoResponse -f "https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json") -ErrorAction SilentlyContinue
+		Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
-		try
-		{
-			[System.Console]::OutputEncoding = [System.Text.Encoding]::Unicode
+		return
+	}
 
-			# https://github.com/microsoft/WSL/blob/master/distributions/DistributionInfo.json
-			# wsl --list --online relies on Internet connection too, so it's much convenient to parse DistributionInfo.json, rather than parse a cmd output
-			$Parameters = @{
-				Uri             = "https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json"
-				UseBasicParsing = $true
-				Verbose         = $true
-			}
-			(Invoke-RestMethod @Parameters).Distributions | ForEach-Object -Process {
-				[PSCustomObject]@{
-					"Distro" = $_.FriendlyName
-					"Alias"  = $_.Name
-				}
-			}
+	Add-Type -AssemblyName PresentationCore, PresentationFramework
 
-			Add-Type -AssemblyName PresentationCore, PresentationFramework
+	#region Variables
+	$CommandTag = $null
 
-			#region Variables
-			$CommandTag = $null
-
-			#region XAML Markup
-			# The section defines the design of the upcoming dialog box
-			[xml]$XAML = @"
+	#region XAML Markup
+	# The section defines the design of the upcoming dialog box
+	[xml]$XAML = @"
 <Window
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -10526,168 +10175,89 @@ function Install-WSL
 	</Grid>
 </Window>
 "@
-			#endregion XAML Markup
+	#endregion XAML Markup
 
-			$Form = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $XAML))
-			$XAML.SelectNodes("//*[@*[contains(translate(name(.),'n','N'),'Name')]]") | ForEach-Object -Process {
-				Set-Variable -Name ($_.Name) -Value $Form.FindName($_.Name)
-			}
-
-			$ButtonInstall.Content = $Localization.Install
-			#endregion Variables
-
-			#region Functions
-			function RadioButtonChecked
-			{
-				$Script:CommandTag = $_.OriginalSource.Tag
-				if (-not $ButtonInstall.IsEnabled)
-				{
-					$ButtonInstall.IsEnabled = $true
-				}
-			}
-
-			function ButtonInstallClicked
-			{
-				Write-Warning -Message $Script:CommandTag
-
-				Start-Process -FilePath wsl.exe -ArgumentList "--install --distribution $Script:CommandTag" -Wait
-
-				$Form.Close()
-
-				# Receive updates for other Microsoft products when you update Windows
-				(New-Object -ComObject Microsoft.Update.ServiceManager).AddService2("7971f918-a847-4430-9279-4a52d1efe18d", 7, "")
-
-				# Check for updates
-				Start-Process -FilePath "$env:SystemRoot\System32\UsoClient.exe" -ArgumentList StartInteractiveScan
-			}
-			#endregion
-
-			foreach ($Distro in $Distros)
-			{
-				$Panel = New-Object -TypeName System.Windows.Controls.StackPanel
-				$RadioButton = New-Object -TypeName System.Windows.Controls.RadioButton
-				$TextBlock = New-Object -TypeName System.Windows.Controls.TextBlock
-				$Panel.Orientation = "Horizontal"
-				$RadioButton.GroupName = "WslDistro"
-				$RadioButton.Tag = $Distro.Alias
-				$RadioButton.Add_Checked({RadioButtonChecked})
-				$TextBlock.Text = $Distro.Distro
-				$Panel.Children.Add($RadioButton) | Out-Null
-				$Panel.Children.Add($TextBlock) | Out-Null
-				$PanelContainer.Children.Add($Panel) | Out-Null
-			}
-
-			$ButtonInstall.Add_Click({ButtonInstallClicked})
-
-			#region Sendkey function
-			# Emulate the Backspace key sending to prevent the console window to freeze
-			Start-Sleep -Milliseconds 500
-
-			Add-Type -AssemblyName System.Windows.Forms
-
-			Get-Process | Where-Object -FilterScript {(($_.ProcessName -eq "powershell") -or ($_.ProcessName -eq "WindowsTerminal")) -and ($_.MainWindowTitle -match "Sophia Script for Windows 11")} | ForEach-Object -Process {
-				# Show window, if minimized
-				[WinAPI.ForegroundWindow]::ShowWindowAsync($_.MainWindowHandle, 10)
-
-				Start-Sleep -Seconds 1
-
-				# Force move the console window to the foreground
-				[WinAPI.ForegroundWindow]::SetForegroundWindow($_.MainWindowHandle)
-
-				Start-Sleep -Seconds 1
-
-				# Emulate the Backspace key sending
-				[System.Windows.Forms.SendKeys]::SendWait("{BACKSPACE 1}")
-			}
-			#endregion Sendkey function
-
-			# Force move the WPF form to the foreground
-			$Window.Add_Loaded({$Window.Activate()})
-			$Form.ShowDialog() | Out-Null
-		}
-		catch [System.Net.WebException]
-		{
-			Write-Warning -Message ($Localization.NoResponse -f "https://raw.githubusercontent.com")
-			Write-Error -Message ($Localization.NoResponse -f "https://raw.githubusercontent.com") -ErrorAction SilentlyContinue
-		}
+	$Form = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $XAML))
+	$XAML.SelectNodes("//*[@*[contains(translate(name(.),'n','N'),'Name')]]") | ForEach-Object -Process {
+		Set-Variable -Name ($_.Name) -Value $Form.FindName($_.Name)
 	}
-	catch [System.ComponentModel.Win32Exception]
+
+	$ButtonInstall.Content = $Localization.Install
+	#endregion Variables
+
+	#region Functions
+	function RadioButtonChecked
 	{
-		Write-Warning -Message $Localization.NoInternetConnection
-		Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
+		$Script:CommandTag = $_.OriginalSource.Tag
+		if (-not $ButtonInstall.IsEnabled)
+		{
+			$ButtonInstall.IsEnabled = $true
+		}
 	}
 
+	function ButtonInstallClicked
+	{
+		Write-Warning -Message $Script:CommandTag
+
+		Start-Process -FilePath wsl.exe -ArgumentList "--install --distribution $Script:CommandTag" -Wait
+
+		$Form.Close()
+
+		# Receive updates for other Microsoft products when you update Windows
+		New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name AllowMUUpdateService -PropertyType DWord -Value 1 -Force
+
+		# Check for updates
+		Start-Process -FilePath "$env:SystemRoot\System32\UsoClient.exe" -ArgumentList StartInteractiveScan
+	}
+	#endregion
+
+	foreach ($Distribution in $Distributions)
+	{
+		$Panel = New-Object -TypeName System.Windows.Controls.StackPanel
+		$RadioButton = New-Object -TypeName System.Windows.Controls.RadioButton
+		$TextBlock = New-Object -TypeName System.Windows.Controls.TextBlock
+		$Panel.Orientation = "Horizontal"
+		$RadioButton.GroupName = "WslDistribution"
+		$RadioButton.Tag = $Distribution.Alias
+		$RadioButton.Add_Checked({RadioButtonChecked})
+		$TextBlock.Text = $Distribution.Distribution
+		$Panel.Children.Add($RadioButton) | Out-Null
+		$Panel.Children.Add($TextBlock) | Out-Null
+		$PanelContainer.Children.Add($Panel) | Out-Null
+	}
+
+	$ButtonInstall.Add_Click({ButtonInstallClicked})
+
+	#region Sendkey function
+	# Emulate the Backspace key sending to prevent the console window to freeze
+	Start-Sleep -Milliseconds 500
+
+	Add-Type -AssemblyName System.Windows.Forms
+
+	# We cannot use Get-Process -Id $PID as script might be invoked via Terminal with different $PID
+	Get-Process -Name powershell, WindowsTerminal -ErrorAction Ignore | Where-Object -FilterScript {$_.MainWindowTitle -match "Sophia Script for Windows 11"} | ForEach-Object -Process {
+		# Show window, if minimized
+		[WinAPI.ForegroundWindow]::ShowWindowAsync($_.MainWindowHandle, 10)
+
+		Start-Sleep -Seconds 1
+
+		# Force move the console window to the foreground
+		[WinAPI.ForegroundWindow]::SetForegroundWindow($_.MainWindowHandle)
+
+		Start-Sleep -Seconds 1
+
+		# Emulate the Backspace key sending
+		[System.Windows.Forms.SendKeys]::SendWait("{BACKSPACE 1}")
+	}
+	#endregion Sendkey function
+
+	# Force move the WPF form to the foreground
+	$Window.Add_Loaded({$Window.Activate()})
+	$Form.ShowDialog() | Out-Null
 }
 #endregion WSL
 
 #region Start menu
-<#
-	.SYNOPSIS
-	Unpin all Start apps
-
-	.EXAMPLE
-	UnpinAllStartApps
-
-	.NOTES
-	Current user
-#>
-function UnpinAllStartApps
-{
-	Remove-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState\start*.bin" -Force -ErrorAction Ignore
-
-	# https://gist.github.com/rad1ke
-	$HexString = "E27AE14B01FC4D1B9C00810BDE6E51854E5A5F47005BB1498A5C92AF9084F95E9BDB91E2EEDDD701300B000067DEFA31529529B3D32D8092A6EB66C8D5EADB19CF9B13518AAB9
-3275D9CEEF37E62C3574C036F327D1110AB0977996D67A2F8FA897D7207BEE85586B8CE6AD4F9736AA2154E3DCC9D082996984B76F1C73067F124F92A41F2B2CA83EF35436670979556FAE85AB10EA1
-6C932C3AECE1D45DA06D64BC42F4565AD0FCB8C63CDE7F6BB97ACE300198C3EACA3E1C974F547B1A7CF5B9C6A912448AB38A3BE2D6F0230A4A9AACC710C3E75088754CC2FB054B55B1D6ED7AD41EB8B
-0C9D4C274E87A525582F6CFBEAE5A904A1B0A3BA07939B79CAB4F1C3DF35BF88DE846E64555F0AEB47562C329206A9975664558849E0C251E8832D52B4FD7560347E5606AC882B9FC1F43C96922C0EA
-1927DF004A062BAD5AC5A4BE6BF2DB23158B2BAEEF8DE9E3A777910E82E5488A83E4D64B0D84440B98B35BC4A3438596145669904AB392CFD5F7E22F616747B84851481FE1FF41CA9A2534CCE7AFC45
-584370B4940DF30555536344249690F00C3A7E2552E352FE733C7ED2F80A29AD16937810AF805A444A344188C0CBDA51E5466BF45F2587508A69581CC2BCDAE06CB363658D94CD60569352FDA17AE7C
-DD785810F369B41F2D15930430A809567CC6C643FE7986CAD545EF3DB40CA6FA9220BFC7F65610AECB22799838B80DE73AF549923F8219FFAAD64780E2DB53133D73890294E77F9B0970484E86A0507
-37724FF15281C1726D334D3C9A67A85A78AE33F55DB675DAA31C47A156C0F8212DCEE228537668F4BF898C0CB869B74C98DF7EFBE0132359E5156417A85CC634B86314FAB47FB9A8DFEAFA1AEFC5E59
-9A3F744BA51E8E6823F80E1529187FA5A78420B1EC091FD93134A71A0A0F478341D9ABD2CEABD5444160023C9CAB0A5C2BAC97F55F1E98FD21F2CFF03D2D24E0C4642F4A8A6E7627BD143AFC1A6DAE6
-97B286C941B5EAAF57D34D598317C97F7CA23544B219196661B73E9DD27EBFE204B43C98C241AB02D2AA3A4EE7B2B477FC5E31642AF613BF356DFBE8AD666CE93267A3D45FD40F83CABAA2F0AE2601C
-470D98AC4ABBCFA968882986297D06D81C1BE1EE8A0E64FB7543981B8E632809FBA7606BF518E8792EF4FBDC5CFC55690D8DF60812ECB2A39EB24B6F941C966DEF89E61E000D3F28CB6B260B17A53CE
-8EEFC371C98BBEE72DE915BA9023DC74EEE7895D60AC2D13B51E73EB37E0FB714BB259614F3F7CBECD66EBDAE52FCB01D778C413DE0ED739DEA7AE48543614B93D46F63D1076E3C7696863D8F64EAC7
-CAA7224FEB1A15E114358F379CA686AD7F09E75E2350F38A3B27F38D2DEFFB008B007371BD32E65B39FF6661DA237F277AC4A9C4DA5A1753250BBD3FA7ECD07E594C2014B5E26E06414B6588211CE43
-9DAA2A352B017C196B4F20049DDBF2E4514E2CD7545E5AE22E877D5B6975D7FCDC61D49958258A093B05DB6D7C6457B9C260A420B1A15C6010B9C4AE68078E1B9592C97B47BFFE2C2F10A10129CC3B0
-87041840091D2A6F5FDA1561E2F0315F8F0BF46204AA4E7C12DC819A1ABCDEB02400AA2FD46ECE2B8698C19F61ECA68232536A712BC858029D40FED5C20A051BCE6D316B03A97FE7051EE0C952A7EB9
-FD2F77D9FBE75022FF5D13B168BD0B004D9C803E8F8C5D8F25CB22ACC97D8EDE169E5D50FCD87444C2029F021D87807B4A04EF148EF1C814E2827FABBCDE9E042140E0D890CEDE88B21F9824956D8F1
-8EF3A8AC85194248915F53AF26F70BC5FDC26E415936EAB0DD78398B725F5419E8DDFD46EE9A17A37087507F9D20358208A65366C4824518E75413FDE5F27FC5DD8132EFB4414A5BDDDA1D64593D863
-60062373FEE36F51ED56CA419FAD69751F76588995F9E2BE75ED13D2DED91EC1DED011752089716DD9C89DE21B8E52AD08CF1C463B0D79111200DF5269C646FBF0E3091A413CA70F6CA8F75BE257DB0
-28329F7224023603C743AB204F8DAB5C273975FA93FBAAD84D0E4D72ABAC3A4E23D7236C848AD317E73E114C5B7438B8248C75B528E19E26D9BF908001A3214A137F24C74BC7D9910F858E47789FDFE
-52AB712AE758AE15C4D86ED3C23D4EB78C5ED94D8A5AB8AA93C43E18FC0CE418AC79DF945E81A58B70332A2C03C445436E8013E0B82AC59AF856C6A00812BCD3B6209449B6D008CA37D8A9210A61049
-350AD07F4E88FC7FBEC9FC64BC60C318912E36DBEA6D4058AF35CACD6E790C96B66EAE5966C47D3E1C4ACF42BF04D58FF363D20DBA61C9D32EBE433A45AFE02B41FD6FC91AE7157CCD7FACEC294623F
-825DE576F72A8245D2BC5D1D7C71B183166C8F0DAF9CF8ED6F1DAEBB0349D82E57BB81DB946128A5440235AD6222A294B27E97738D49F52170DE1B1B922C8C548215FD0D2980D7BA9B8F3133D9415BA
-B29670A5EDEC4858EB9D1A7E8FBD0296CB6D610BDD44A1A450EDEC61983152C237225F7AABABD482EB08328BC338D87BA1FE30864D9A97C20FA42CAEDF6359457C8BB26032A9728E819FFF9BF4F7154
-69A0A4506A4CA1625E79CAE215683CDAADFB1E68ADC4987FF3FD7E9859CB40291478A4D2B281AEFEB97DC45C7F991311A68C2F173E2377709C355C6870DC4C14E5534120539C1DB0AD0D6E331D67058
-1F6E352DCB3E34D61E6742F957FE9F39854A324E07C68A17BE9CB19446583EDDAAFD0E433A54F4E0854709BD47B24AC76DF75849B9D917FF2B0F4228C94EA01CF658430B2C18F6EEAB104B9A935C6FB
-FEA494190BF3446DCC8C8AAF62BA01F0BFB18E15503C27558DB70C48EFB0AEA0B600F985C904E9F244E2A08464AE980E1A8CC05F22C9D4C23D753FD5250D0E190CB0CAC71404CF52A8CCEC988DBA22F
-2164E203FB52064F38D8277764FECB0E2D811C307E4687CF6A245B2B89389D188E1F115EF2B36BA1BE63222A2C7E886A279B08ADF70109903F70EA1068137E72E894758614FE4BBAF333B8FC3EA98B1
-49B3403FF8655FAAE1DF4877B5CDABC434B7336AB24C25A85246ADAA24DECB5A39F8FD7A5549F23F112244B7EE9E447D3226F2259428FDC0C3D6CD3A47B39092532B803FEBB6FFCC1ADF26C7857F04F
-294F16A9DA7DD851D4EC99BBCF853FD3435A256F47DD3CB9480365C2896A1D0E2314940968E4E3714723B4C1CDD368581FED307C8B279AE6FB8BB72EC0A093733E2D9CC6B43320766D3B43D3C554CA8
-2EEEF7B09850D29B2F412DEF3D0BD9194CAE8113B3B38085C77C238CB8D15BF6D6AB42C193F4E2F27F8BEDABB2D6ADE9E486B6AFAFD8D5DBE3B7D7305790F96ECDCC2DD016C5B9B200CB72E6CF54D71
-F69A01CDE4E3A0A4C5A03627DECD491F215C1420EB07AB8FD2763FCFF5211EB964C82E69DA208BDFA76306D54642B117DCB9A92927CE2E633338D4EEA63B571349B8DA1D4B5523C4CA10308769E4F46
-1ADD16DD5DFDB0E705187593DEF5CCCF659E48366462CC21D7930E1064234157A7A08E9C90927A37C5CF23D54C755002E4E657BB6E70D9B4BE7C468C19D6969FAE138EBF2C20DD3F5A0BC4C0E97D5BF
-DB8744A21396C44549242817BEAD5AE14FF602E69E75B87784DE5F30BE14106E8D8A081DC8CCCFBF93896E622F755F27E82A596DDCA3469A93ECB9E2E897BF0FCC063426DACDC3B1D81E1EFE6B63932
-6CA43526CFAEDF9922EAC3204FEB84AAED781EE5516FA5B4DCAB85DB5FF33CEC454DAA375BDA5EEA7C871C310AEDC5BD6B220B59B901D377E22FFFE95FEDA28CE2CE33CAEB8541EE05E1B5650D776C4
-B2A246DB4613E2CC5D96A44D24AE662D848A7C9E3E922AFF0632B7B40505402956FABC5C3AAB55EEE29085046C127E8776CEFC1690B76EE99371AF9B1D7EF6F79E78325DD3BD8377E9B73B936C6F261
-1D0A1223A4D7C6CF3037922DD0686A701FF86761993F294D26E13A7BB8B1C61ACAF38D50334A88DABB3FA412B4FC79F6FBFD0D0A92301484FF1BD1CF3DC67780E4562E05CCA329CABA7CB2B77D9A707
-BDEE24B1E5E4ED6CC9D5A337908BE5303E477736C8A75051A8FBD4E3CB6360D8F0A992A48F333434D4AE712EC830BCB5EAA98788B6C76C"
-
-	$HexString = $HexString.Replace("`n","").Replace("`r","")
-	$Bytes = [byte[]]::new($HexString.Length/2)
-
-	for ($i = 0; $i -lt $HexString.Length; $i += 2)
-	{
-		$Bytes[$i/2] = [System.Convert]::ToByte($HexString.Substring($i, 2), 16)
-	}
-	{
-		$Bytes[$i/2] = [System.Convert]::ToByte($HexString.Substring($i, 2), 16)
-	}
-
-	Set-Content -Path "$env:LOCALAPPDATA\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState\start2.bin" -Value $Bytes -Encoding Byte -Force
-}
-
 <#
 	.SYNOPSIS
 	Configure Start layout
@@ -10744,17 +10314,17 @@ function StartLayout
 		"Default"
 		{
 			# Default
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name Start_Layout -PropertyType DWord -Value 0 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_Layout -PropertyType DWord -Value 0 -Force
 		}
 		"ShowMorePins"
 		{
 			# Show More Pins
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name Start_Layout -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_Layout -PropertyType DWord -Value 1 -Force
 		}
 		"ShowMoreRecommendations"
 		{
 			# Show More Recommendations
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name Start_Layout -PropertyType DWord -Value 2 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_Layout -PropertyType DWord -Value 2 -Force
 		}
 	}
 }
@@ -10792,6 +10362,9 @@ function UninstallUWPApps
 	#region Variables
 	# The following UWP apps will have their checkboxes unchecked
 	$UncheckedAppxPackages = @(
+		# Dolby Access
+		"DolbyLaboratories.DolbyAccess",
+
 		# Windows Media Player
 		"Microsoft.ZuneMusic",
 
@@ -10843,11 +10416,15 @@ function UninstallUWPApps
 		"AppUp.IntelGraphicsControlPanel",
 		"AppUp.IntelGraphicsExperience",
 
+		# ELAN Touchpad
+		"ELANMicroelectronicsCorpo.ELANTouchpadforThinkpad",
+		"ELANMicroelectronicsCorpo.ELANTrackPointforThinkpa",
+
 		# Microsoft Application Compatibility Enhancements
 		"Microsoft.ApplicationCompatibilityEnhancements",
 
 		# AVC Encoder Video Extension
-		"Microsoft.AVCEncoderVideoExtension", 
+		"Microsoft.AVCEncoderVideoExtension",
 
 		# Microsoft Desktop App Installer
 		"Microsoft.DesktopAppInstaller",
@@ -10879,6 +10456,7 @@ function UninstallUWPApps
 
 		# HEVC Video Extensions from Device Manufacturer
 		"Microsoft.HEVCVideoExtension",
+		"Microsoft.HEVCVideoExtensions",
 
 		# Raw Image Extension
 		"Microsoft.RawImageExtension",
@@ -10902,7 +10480,11 @@ function UninstallUWPApps
 		"NVIDIACorp.NVIDIAControlPanel",
 
 		# Realtek Audio Console
-		"RealtekSemiconductorCorp.RealtekAudioControl"
+		"RealtekSemiconductorCorp.RealtekAudioControl",
+
+		# Synaptics
+		"SynapticsIncorporated.SynapticsControlPanel",
+		"SynapticsIncorporated.24916F58D6E7"
 	)
 
 	#region Variables
@@ -11015,17 +10597,11 @@ function UninstallUWPApps
 
 		# The -PackageTypeFilter Bundle doesn't contain these packages, and we need to add manually
 		$Packages = @(
-			# Spotify
-			"SpotifyAB.SpotifyMusic",
-
-			# Disney+
-			"Disney.37853FC22B2CE",
-
 			# Outlook
 			"Microsoft.OutlookForWindows",
 
-			# Chat (Microsoft Teams)
-			"MicrosoftTeams"
+			# Microsoft Teams
+			"MSTeams"
 		)
 		foreach ($Package in $Packages)
 		{
@@ -11047,7 +10623,7 @@ function UninstallUWPApps
 			[PSCustomObject]@{
 				Name            = $AppxPackage.Name
 				PackageFullName = $AppxPackage.PackageFullName
-				# Sometimes there's more than one package presented in Windows with the same package name like {Microsoft Teams, Microsoft Teams} and we need to display one the first one a window
+				# Sometimes there's more than one package presented in Windows with the same package name like {Microsoft Teams, Microsoft Teams} and we need to display the first one
 				DisplayName     = $PackageId.DisplayName | Select-Object -First 1
 			}
 		}
@@ -11124,10 +10700,11 @@ function UninstallUWPApps
 
 		$Window.Close() | Out-Null
 
-		# If Xbox Game Bar is selected to uninstall stop its' processes
-		if ($PackagesToRemove -match "Microsoft.XboxGamingOverlay")
+		# If MSTeams is selected to uninstall, delete quietly "Microsoft Teams Meeting Add-in for Microsoft Office" too
+		# & "$env:SystemRoot\System32\msiexec.exe" --% /x {A7AB73A3-CB10-4AA5-9D38-6AEFFBDE4C91} /qn
+		if ($PackagesToRemove -match "MSTeams")
 		{
-			Get-Process -Name GameBar, GameBarFTServer -ErrorAction Ignore | Stop-Process -Force
+			Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList "/x {A7AB73A3-CB10-4AA5-9D38-6AEFFBDE4C91} /qn" -Wait
 		}
 
 		$PackagesToRemove | Remove-AppxPackage -AllUsers:$CheckBoxForAllUsers.IsChecked -Verbose
@@ -11221,7 +10798,8 @@ function UninstallUWPApps
 
 		Add-Type -AssemblyName System.Windows.Forms
 
-		Get-Process | Where-Object -FilterScript {(($_.ProcessName -eq "powershell") -or ($_.ProcessName -eq "WindowsTerminal")) -and ($_.MainWindowTitle -match "Sophia Script for Windows 11")} | ForEach-Object -Process {
+		# We cannot use Get-Process -Id $PID as script might be invoked via Terminal with different $PID
+		Get-Process -Name powershell, WindowsTerminal -ErrorAction Ignore | Where-Object -FilterScript {$_.MainWindowTitle -match "Sophia Script for Windows 11"} | ForEach-Object -Process {
 			# Show window, if minimized
 			[WinAPI.ForegroundWindow]::ShowWindowAsync($_.MainWindowHandle, 10)
 
@@ -11240,316 +10818,6 @@ function UninstallUWPApps
 		if ($PackagesToRemove.Count -gt 0)
 		{
 			$ButtonUninstall.IsEnabled = $true
-		}
-
-		# Force move the WPF form to the foreground
-		$Window.Add_Loaded({$Window.Activate()})
-		$Form.ShowDialog() | Out-Null
-	}
-}
-
-<#
-	.SYNOPSIS
-	Restore the default UWP apps
-
-	.EXAMPLE
-	RestoreUWPAppsUWPApps
-
-	.NOTES
-	UWP apps can be restored only if they were uninstalled for the current user
-
-	.NOTES
-	Current user
-#>
-function RestoreUWPApps
-{
-	Add-Type -AssemblyName PresentationCore, PresentationFramework
-
-	#region Variables
-	#region XAML Markup
-	# The section defines the design of the upcoming dialog box
-	[xml]$XAML = @"
-	<Window
-		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		Name="Window"
-		MinHeight="400" MinWidth="410"
-		SizeToContent="Width" WindowStartupLocation="CenterScreen"
-		TextOptions.TextFormattingMode="Display" SnapsToDevicePixels="True"
-		FontFamily="Candara" FontSize="16" ShowInTaskbar="True"
-		Background="#F1F1F1" Foreground="#262626">
-		<Window.Resources>
-			<Style TargetType="StackPanel">
-				<Setter Property="Orientation" Value="Horizontal"/>
-				<Setter Property="VerticalAlignment" Value="Top"/>
-			</Style>
-			<Style TargetType="CheckBox">
-				<Setter Property="Margin" Value="10, 13, 10, 10"/>
-				<Setter Property="IsChecked" Value="True"/>
-			</Style>
-			<Style TargetType="TextBlock">
-				<Setter Property="Margin" Value="0, 10, 10, 10"/>
-			</Style>
-			<Style TargetType="Button">
-				<Setter Property="Margin" Value="20"/>
-				<Setter Property="Padding" Value="10"/>
-				<Setter Property="IsEnabled" Value="False"/>
-			</Style>
-			<Style TargetType="Border">
-				<Setter Property="Grid.Row" Value="1"/>
-				<Setter Property="CornerRadius" Value="0"/>
-				<Setter Property="BorderThickness" Value="0, 1, 0, 1"/>
-				<Setter Property="BorderBrush" Value="#000000"/>
-			</Style>
-			<Style TargetType="ScrollViewer">
-				<Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
-				<Setter Property="BorderBrush" Value="#000000"/>
-				<Setter Property="BorderThickness" Value="0, 1, 0, 1"/>
-			</Style>
-		</Window.Resources>
-		<Grid>
-			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="*"/>
-				<RowDefinition Height="Auto"/>
-			</Grid.RowDefinitions>
-			<Grid Grid.Row="0">
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="*"/>
-				</Grid.ColumnDefinitions>
-				<StackPanel Name="PanelSelectAll" Grid.Column="0" HorizontalAlignment="Left">
-					<CheckBox Name="CheckBoxSelectAll" IsChecked="False"/>
-					<TextBlock Name="TextBlockSelectAll" Margin="10,10, 0, 10"/>
-				</StackPanel>
-			</Grid>
-			<Border>
-				<ScrollViewer>
-					<StackPanel Name="PanelContainer" Orientation="Vertical"/>
-				</ScrollViewer>
-			</Border>
-			<Button Name="ButtonRestore" Grid.Row="2"/>
-		</Grid>
-	</Window>
-"@
-	#endregion XAML Markup
-
-	$Form = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $XAML))
-	$XAML.SelectNodes("//*[@*[contains(translate(name(.),'n','N'),'Name')]]") | ForEach-Object -Process {
-		Set-Variable -Name ($_.Name) -Value $Form.FindName($_.Name)
-	}
-
-	$Window.Title            = $Localization.UWPAppsTitle
-	$ButtonRestore.Content   = $Localization.Restore
-	# Extract the localized "Select all" string from shell32.dll
-	$TextBlockSelectAll.Text = [WinAPI.GetStrings]::GetString(31276)
-
-	$ButtonRestore.Add_Click({ButtonRestoreClick})
-	$CheckBoxSelectAll.Add_Click({CheckBoxSelectAllClick})
-	#endregion Variables
-
-	#region Functions
-	function Get-AppxManifest
-	{
-		Write-Information -MessageData "" -InformationAction Continue
-		# Extract the localized "Please wait..." string from shell32.dll
-		Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
-
-		# You cannot retrieve packages using -PackageTypeFilter Bundle, otherwise you won't get the InstallLocation attribute. It can be retrieved only by comparing with $Bundles
-		$Bundles = (Get-AppXPackage -PackageTypeFilter Bundle -AllUsers).Name
-		$AppxPackages = @(Get-AppxPackage -AllUsers | Where-Object -FilterScript {$_.PackageUserInformation -match "Staged"} | Where-Object -FilterScript {$_.Name -in $Bundles})
-
-		# The Bundle packages contains no Microsoft Teams
-		if (Get-AppxPackage -Name MicrosoftTeams -AllUsers)
-		{
-			$AppxPackages += Get-AppxPackage -Name MicrosoftTeams -AllUsers | Where-Object -FilterScript {$_.PackageUserInformation -match "Staged"}
-		}
-
-		$PackagesIds = [Windows.Management.Deployment.PackageManager, Windows.Web, ContentType = WindowsRuntime]::new().FindPackages() | Select-Object -Property DisplayName -ExpandProperty Id | Select-Object -Property Name, DisplayName
-
-		foreach ($AppxPackage in $AppxPackages)
-		{
-			$PackageId = $PackagesIds | Where-Object -FilterScript {$_.Name -eq $AppxPackage.Name}
-
-			if (-not $PackageId)
-			{
-				continue
-			}
-
-			[PSCustomObject]@{
-				Name            = $AppxPackage.Name
-				PackageFullName = $AppxPackage.PackageFullName
-				DisplayName     = $PackageId.DisplayName
-				AppxManifest    = "$($AppxPackage.InstallLocation)\AppxManifest.xml"
-			}
-		}
-	}
-
-	function Add-Control
-	{
-		[CmdletBinding()]
-		param
-		(
-			[Parameter(
-				Mandatory = $true,
-				ValueFromPipeline = $true
-			)]
-			[ValidateNotNull()]
-			[PSCustomObject[]]
-			$Packages
-		)
-
-		process
-		{
-			foreach ($Package in $Packages)
-			{
-				$CheckBox = New-Object -TypeName System.Windows.Controls.CheckBox
-				$CheckBox.Tag = $Package.AppxManifest
-
-				$TextBlock = New-Object -TypeName System.Windows.Controls.TextBlock
-
-				if ($Package.DisplayName)
-				{
-					$TextBlock.Text = $Package.DisplayName
-				}
-				else
-				{
-					$TextBlock.Text = $Package.Name
-				}
-
-				$StackPanel = New-Object -TypeName System.Windows.Controls.StackPanel
-				$StackPanel.Children.Add($CheckBox) | Out-Null
-				$StackPanel.Children.Add($TextBlock) | Out-Null
-
-				$PanelContainer.Children.Add($StackPanel) | Out-Null
-
-				$CheckBox.IsChecked = $true
-				$PackagesToRestore.Add($Package.AppxManifest)
-
-				$CheckBox.Add_Click({CheckBoxClick})
-			}
-		}
-	}
-
-	function ButtonRestoreClick
-	{
-		Write-Information -MessageData "" -InformationAction Continue
-		# Extract the localized "Please wait..." string from shell32.dll
-		Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
-
-		$Window.Close() | Out-Null
-
-		$Parameters = @{
-			Register                  = $true
-			ForceApplicationShutdown  = $true
-			ForceUpdateFromAnyVersion = $true
-			DisableDevelopmentMode    = $true
-			Verbose                   = $true
-		}
-		$PackagesToRestore | Add-AppxPackage @Parameters
-	}
-
-	function CheckBoxClick
-	{
-		$CheckBox = $_.Source
-
-		if ($CheckBox.IsChecked)
-		{
-			$PackagesToRestore.Add($CheckBox.Tag) | Out-Null
-		}
-		else
-		{
-			$PackagesToRestore.Remove($CheckBox.Tag)
-		}
-
-		ButtonRestoreSetIsEnabled
-	}
-
-	function CheckBoxSelectAllClick
-	{
-		$CheckBox = $_.Source
-
-		if ($CheckBox.IsChecked)
-		{
-			$PackagesToRestore.Clear()
-
-			foreach ($Item in $PanelContainer.Children.Children)
-			{
-				if ($Item -is [System.Windows.Controls.CheckBox])
-				{
-					$Item.IsChecked = $true
-					$PackagesToRestore.Add($Item.Tag)
-				}
-			}
-		}
-		else
-		{
-			$PackagesToRestore.Clear()
-
-			foreach ($Item in $PanelContainer.Children.Children)
-			{
-				if ($Item -is [System.Windows.Controls.CheckBox])
-				{
-					$Item.IsChecked = $false
-				}
-			}
-		}
-
-		ButtonRestoreSetIsEnabled
-	}
-
-	function ButtonRestoreSetIsEnabled
-	{
-		if ($PackagesToRestore.Count -gt 0)
-		{
-			$ButtonRestore.IsEnabled = $true
-		}
-		else
-		{
-			$ButtonRestore.IsEnabled = $false
-		}
-	}
-	#endregion Functions
-
-	$PackagesToRestore = [Collections.Generic.List[string]]::new()
-	$AppXPackages = Get-AppxManifest
-	$AppXPackages | Add-Control
-
-	if ($AppxPackages.Count -eq 0)
-	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.NoData -Verbose
-	}
-	else
-	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.DialogBoxOpening -Verbose
-
-		#region Sendkey function
-		# Emulate the Backspace key sending to prevent the console window to freeze
-		Start-Sleep -Milliseconds 500
-
-		Add-Type -AssemblyName System.Windows.Forms
-
-		Get-Process | Where-Object -FilterScript {(($_.ProcessName -eq "powershell") -or ($_.ProcessName -eq "WindowsTerminal")) -and ($_.MainWindowTitle -match "Sophia Script for Windows 11")} | ForEach-Object -Process {
-			# Show window, if minimized
-			[WinAPI.ForegroundWindow]::ShowWindowAsync($_.MainWindowHandle, 10)
-
-			Start-Sleep -Seconds 1
-
-			# Force move the console window to the foreground
-			[WinAPI.ForegroundWindow]::SetForegroundWindow($_.MainWindowHandle)
-
-			Start-Sleep -Seconds 1
-
-			# Emulate the Backspace key sending to prevent the console window to freeze
-			[System.Windows.Forms.SendKeys]::SendWait("{BACKSPACE 1}")
-		}
-		#endregion Sendkey function
-
-		if ($PackagesToRestore.Count -gt 0)
-		{
-			$ButtonRestore.IsEnabled = $true
 		}
 
 		# Force move the WPF form to the foreground
@@ -11596,91 +10864,29 @@ function CortanaAutostart
 		$Enable
 	)
 
+	if (-not (Get-AppxPackage -Name Microsoft.549981C3F5F10))
+	{
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+		return
+	}
+
+	if (-not (Test-Path -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId"))
+	{
+		New-Item -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Force
+	}
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
-			if (Get-AppxPackage -Name Microsoft.549981C3F5F10)
-			{
-				if (-not (Test-Path -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId"))
-				{
-					New-Item -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Force
-				}
-				New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Name State -PropertyType DWord -Value 1 -Force
-			}
+			New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Name State -PropertyType DWord -Value 1 -Force
 		}
 		"Enable"
 		{
-			if (Get-AppxPackage -Name Microsoft.549981C3F5F10)
-			{
-				if (-not (Test-Path -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId"))
-				{
-					New-Item -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Force
-				}
-				New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Name State -PropertyType DWord -Value 2 -Force
-			}
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Microsoft Teams autostarting
-
-	.PARAMETER Disable
-	Enable Teams autostarting
-
-	.PARAMETER Enable
-	Disable Teams autostarting
-
-	.EXAMPLE
-	TeamsAutostart -Disable
-
-	.EXAMPLE
-	TeamsAutostart -Enable
-
-	.NOTES
-	Current user
-#>
-function TeamsAutostart
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable
-	)
-
-	if (Get-AppxPackage -Name MicrosoftTeams)
-	{
-		switch ($PSCmdlet.ParameterSetName)
-		{
-			"Disable"
-			{
-				if (-not (Test-Path -Path "HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\MicrosoftTeams_8wekyb3d8bbwe\TeamsStartupTask"))
-				{
-					New-Item -Path "HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\MicrosoftTeams_8wekyb3d8bbwe\TeamsStartupTask" -Force
-				}
-				New-ItemProperty -Path "HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\MicrosoftTeams_8wekyb3d8bbwe\TeamsStartupTask" -Name State -PropertyType DWord -Value 1 -Force
-			}
-			"Enable"
-			{
-				if (-not (Test-Path -Path "HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\MicrosoftTeams_8wekyb3d8bbwe\TeamsStartupTask"))
-				{
-					New-Item -Path "HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\MicrosoftTeams_8wekyb3d8bbwe\TeamsStartupTask" -Force
-				}
-				New-ItemProperty -Path "HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\MicrosoftTeams_8wekyb3d8bbwe\TeamsStartupTask" -Name State -PropertyType DWord -Value 2 -Force
-			}
+			New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Name State -PropertyType DWord -Value 2 -Force
 		}
 	}
 }
@@ -11781,21 +10987,24 @@ function XboxGameTips
 		$Enable
 	)
 
+	if (-not (Get-AppxPackage -Name Microsoft.GamingApp))
+	{
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+		return
+	}
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
-			if ((Get-AppxPackage -Name Microsoft.XboxGamingOverlay) -or (Get-AppxPackage -Name Microsoft.GamingApp))
-			{
-				New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 0 -Force
-			}
+			New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 0 -Force
 		}
 		"Enable"
 		{
-			if ((Get-AppxPackage -Name Microsoft.XboxGamingOverlay) -or (Get-AppxPackage -Name Microsoft.GamingApp))
-			{
-				New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 1 -Force
-			}
+			New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 1 -Force
 		}
 	}
 }
@@ -11850,7 +11059,8 @@ function Set-AppGraphicsPerformance
 				$Skip
 				{
 					Write-Information -MessageData "" -InformationAction Continue
-					Write-Verbose -Message $Localization.Skipped -Verbose
+					Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+					Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 				}
 				$KeyboardArrows {}
 			}
@@ -11904,23 +11114,21 @@ function GPUScheduling
 	{
 		"Enable"
 		{
-			if (Get-CimInstance -ClassName CIM_VideoController | Where-Object -FilterScript {($_.AdapterDACType -ne "Internal") -and ($null -ne $_.AdapterDACType)})
+			# Determining whether PC has an external graphics card
+			$AdapterDACType = Get-CimInstance -ClassName CIM_VideoController | Where-Object -FilterScript {($_.AdapterDACType -ne "Internal") -and ($null -ne $_.AdapterDACType)}
+			# Determining whether an OS is not installed on a virtual machine
+			$ComputerSystemModel = (Get-CimInstance -ClassName CIM_ComputerSystem).Model -notmatch "Virtual"
+			# Checking whether a WDDM verion is 2.7 or higher
+			$WddmVersion_Min = [Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\FeatureSetUsage", "WddmVersion_Min", $null)
+
+			if ($AdapterDACType -and ($ComputerSystemModel -notmatch "Virtual") -and ($WddmVersion_Min -ge 2700))
 			{
-				# Determining whether an OS is not installed on a virtual machine
-				if ((Get-CimInstance -ClassName CIM_ComputerSystem).Model -notmatch "Virtual")
-				{
-					# Checking whether a WDDM verion is 2.7 or higher
-					$WddmVersion_Min = [Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\FeatureSetUsage", "WddmVersion_Min", $null)
-					if ($WddmVersion_Min -ge 2700)
-					{
-						New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" -Name HwSchMode -PropertyType DWord -Value 2 -Force
-					}
-				}
+				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers -Name HwSchMode -PropertyType DWord -Value 2 -Force
 			}
 		}
 		"Disable"
 		{
-			New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" -Name HwSchMode -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers -Name HwSchMode -PropertyType DWord -Value 1 -Force
 		}
 	}
 }
@@ -11975,36 +11183,44 @@ function CleanupTask
 	{
 		"Register"
 		{
-			# Checking if notifications and Action Center are disabled
-			# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
-			$UserNotificationCenter = [Microsoft.Win32.Registry]::GetValue("HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\Explorer", "DisableNotificationCenter", $null)
-			$MachineNotificationCenter = [Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\Explorer", "DisableNotificationCenter", $null)
-			if (($UserNotificationCenter -eq 1) -or ($MachineNotificationCenter -eq 1))
+			# Enable notifications in Action Center
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Force -ErrorAction Ignore
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+
+			# Remove registry keys if Windows Script Host is disabled
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings", "HKLM:\SOFTWARE\Microsoft\Windows Script Host\Settings" -Name Enabled -Force -ErrorAction Ignore
+
+			# Enable notifications
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications -Name ToastEnabled -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\CurrentVersion\PushNotifications -Name NoToastApplicationNotification -Force -ErrorAction Ignore
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+
+			# Checking whether VBS engine is enabled
+			if ((Get-WindowsCapability -Online -Name VBSCRIPT*).State -ne "Installed")
 			{
-				Write-Verbose -Message ($Localization.ActionCenter -f $MyInvocation.Line.Trim()) -Verbose
-				Write-Error -Message ($Localization.ActionCenter -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-				Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+				try
+				{
+					Get-WindowsCapability -Online -Name VBSCRIPT* | Add-WindowsCapability -Online
+				}
+				catch
+				{
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Warning -Message ($Localization.WindowsComponentBroken -f (Get-WindowsCapability -Online -Name VBSCRIPT*).DisplayName)
+					Write-Information -MessageData "" -InformationAction Continue
 
-				return
-			}
+					Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+					Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+					Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
 
-			# Checking if Windows Script Host is disabled
-			# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
-			$UserScriptHost = [Microsoft.Win32.Registry]::GetValue("HKEY_CURRENT_USER\Software\Microsoft\Windows Script Host\Settings", "Enabled", $null)
-			$MachineScriptHost = [Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\Software\Microsoft\Windows Script Host\Settings", "Enabled", $null)
-			if (($UserScriptHost -eq 0) -or ($MachineScriptHost -eq 0))
-			{
-				Write-Verbose -Message ($Localization.WindowsScriptHost -f $MyInvocation.Line.Trim()) -Verbose
-				Write-Error -Message ($Localization.WindowsScriptHost -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-				Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-
-				return
+					exit
+				}
 			}
 
 			# Checking if we're trying to create the task when it was already created as another user
 			if (Get-ScheduledTask -TaskPath "\Sophia\" -TaskName "Windows Cleanup" -ErrorAction Ignore)
 			{
-				# Also we can parse "$env:SystemRoot\System32\Tasks\Sophia\Windows Cleanup" to Check whether the task was created
+				# Also we can parse "$env:SystemRoot\System32\Tasks\Sophia\Windows Cleanup" to сheck whether the task was created
 				$ScheduleService = New-Object -ComObject Schedule.Service
 				$ScheduleService.Connect()
 				$ScheduleService.GetFolder("\Sophia").GetTasks(0) | Where-Object -FilterScript {$_.Name -eq "Windows Cleanup"} | Foreach-Object {
@@ -12013,13 +11229,13 @@ function CleanupTask
 				}
 
 				# Convert SID to username
-				$TaskUserAccount = (New-Object System.Security.Principal.SecurityIdentifier($SID)).Translate([System.Security.Principal.NTAccount]).Value -split "\\" | Select-Object -Last 1
+				$TaskUserAccount = (New-Object -TypeName System.Security.Principal.SecurityIdentifier($SID)).Translate([System.Security.Principal.NTAccount]).Value -split "\\" | Select-Object -Last 1
 
 				if ($TaskUserAccount -ne $env:USERNAME)
 				{
-					Write-Verbose -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount) -Verbose
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Warning -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount)
 					Write-Error -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount) -ErrorAction SilentlyContinue
-					Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 					return
 				}
@@ -12048,16 +11264,18 @@ function CleanupTask
 			}
 
 			$VolumeCaches = @(
-				"Delivery Optimization Files",
 				"BranchCache",
+				"Delivery Optimization Files",
 				"Device Driver Packages",
 				"Language Pack",
 				"Previous Installations",
 				"Setup Log Files",
 				"System error memory dump files",
 				"System error minidump files",
+				"Temporary Files",
 				"Temporary Setup Files",
 				"Update Cleanup",
+				"Upgrade Discarded Files",
 				"Windows Defender",
 				"Windows ESD installation files",
 				"Windows Upgrade Log Files"
@@ -12099,12 +11317,15 @@ function CleanupTask
 			# Start the "Windows Cleanup" task if the "Run" button clicked
 			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup\shell\open\command -Name "(default)" -PropertyType String -Value 'powershell.exe -Command "& {Start-ScheduledTask -TaskPath ''\Sophia\'' -TaskName ''Windows Cleanup''}"' -Force
 
-			$CleanupTask = @"
+			$CleanupTaskPS = @"
+# https://github.com/farag2/Sophia-Script-for-Windows
+# https://t.me/sophia_chat
+
 Get-Process -Name cleanmgr, Dism, DismHost | Stop-Process -Force
 
 `$ProcessInfo = New-Object -TypeName System.Diagnostics.ProcessStartInfo
-`$ProcessInfo.FileName = """$env:SystemRoot\System32\cleanmgr.exe"""
-`$ProcessInfo.Arguments = """/sagerun:1337"""
+`$ProcessInfo.FileName = "`$env:SystemRoot\System32\cleanmgr.exe"
+`$ProcessInfo.Arguments = "/sagerun:1337"
 `$ProcessInfo.UseShellExecute = `$true
 `$ProcessInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Minimized
 
@@ -12114,39 +11335,9 @@ Get-Process -Name cleanmgr, Dism, DismHost | Stop-Process -Force
 
 Start-Sleep -Seconds 3
 
-[int]`$SourceMainWindowHandle = (Get-Process -Name cleanmgr | Where-Object -FilterScript {`$_.PriorityClass -eq """BelowNormal"""}).MainWindowHandle
-
-while (`$true)
-{
-	[int]`$CurrentMainWindowHandle = (Get-Process -Name cleanmgr | Where-Object -FilterScript {`$_.PriorityClass -eq """BelowNormal"""}).MainWindowHandle
-	if (`$SourceMainWindowHandle -ne `$CurrentMainWindowHandle)
-	{
-		`$ShowWindowAsync = @{
-			Namespace        = """WinAPI"""
-			Name             = """Win32ShowWindowAsync"""
-			Language         = """CSharp"""
-			MemberDefinition = @"""
-[DllImport("""user32.dll""")]
-public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
-"""@
-		}
-
-		if (-not ("""WinAPI.Win32ShowWindowAsync""" -as [type]))
-		{
-			Add-Type @ShowWindowAsync
-		}
-		`$MainWindowHandle = (Get-Process -Name cleanmgr | Where-Object -FilterScript {`$_.PriorityClass -eq """BelowNormal"""}).MainWindowHandle
-		[WinAPI.Win32ShowWindowAsync]::ShowWindowAsync(`$MainWindowHandle, 2)
-
-		break
-	}
-
-	Start-Sleep -Milliseconds 5
-}
-
 `$ProcessInfo = New-Object -TypeName System.Diagnostics.ProcessStartInfo
-`$ProcessInfo.FileName = """`$env:SystemRoot\System32\Dism.exe"""
-`$ProcessInfo.Arguments = """/Online /English /Cleanup-Image /StartComponentCleanup /NoRestart"""
+`$ProcessInfo.FileName = "`$env:SystemRoot\System32\Dism.exe"
+`$ProcessInfo.Arguments = "/Online /English /Cleanup-Image /StartComponentCleanup /NoRestart"
 `$ProcessInfo.UseShellExecute = `$true
 `$ProcessInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Minimized
 
@@ -12155,25 +11346,50 @@ public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
 `$Process.Start() | Out-Null
 "@
 
-			# Create the "Windows Cleanup" task
-			$Action     = New-ScheduledTaskAction -Execute powershell.exe -Argument "-WindowStyle Hidden -Command $CleanupTask"
+			# Save script to be able to call them from VBS file
+			if (-not (Test-Path -Path $env:SystemRoot\System32\Tasks\Sophia))
+			{
+				New-Item -Path $env:SystemRoot\System32\Tasks\Sophia -ItemType Directory -Force
+			}
+			# Save in UTF8 with BOM
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup.ps1" -Value $CleanupTaskPS -Encoding UTF8 -Force
+
+			# Create vbs script that will help us calling Windows_Cleanup.ps1 script silently, without interrupting system from Focus Assist mode turned on, when a powershell.exe console pops up
+			$CleanupTaskVBS = @"
+' https://github.com/farag2/Sophia-Script-for-Windows
+' https://t.me/sophia_chat
+
+CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoProfile -NoLogo -WindowStyle Hidden -File %SystemRoot%\System32\Tasks\Sophia\Windows_Cleanup.ps1", 0
+"@
+			# Save in UTF8 without BOM
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup.vbs" -Value $CleanupTaskVBS -Encoding Default -Force
+
+			# Create "Windows Cleanup" task
+			# We cannot create a schedule task if %COMPUTERNAME% is equal to %USERNAME%, so we have to use a "$env:COMPUTERNAME\$env:USERNAME" method
+			# https://github.com/PowerShell/PowerShell/issues/21377
+			$Action     = New-ScheduledTaskAction -Execute wscript.exe -Argument "$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup.vbs"
 			$Settings   = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable
-			$Principal  = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Highest
+			$Principal  = New-ScheduledTaskPrincipal -UserId "$env:COMPUTERNAME\$env:USERNAME" -RunLevel Highest
 			$Parameters = @{
 				TaskName    = "Windows Cleanup"
 				TaskPath    = "Sophia"
 				Principal   = $Principal
 				Action      = $Action
-				Description = $Localization.CleanupTaskDescription
+				Description = $Localization.CleanupTaskDescription -f $env:USERNAME
 				Settings    = $Settings
 			}
 			Register-ScheduledTask @Parameters -Force
+
+			# Set author for scheduled task
+			$Task = Get-ScheduledTask -TaskName "Windows Cleanup"
+			$Task.Author = "Team Sophia"
+			$Task | Set-ScheduledTask
 
 			# We have to call PowerShell script via another VBS script silently because VBS has appropriate feature to suppress console appearing (none of other workarounds work)
 			# powershell.exe process wakes up system anyway even from turned on Focus Assist mode (not a notification toast)
 			# https://github.com/DCourtel/Windows_10_Focus_Assist/blob/master/FocusAssistLibrary/FocusAssistLib.cs
 			# https://redplait.blogspot.com/2018/07/wnf-ids-from-perfntcdll-adk-version.html
-			$ToastNotification = @"
+			$ToastNotificationPS = @"
 # https://github.com/farag2/Sophia-Script-for-Windows
 # https://t.me/sophia_chat
 
@@ -12181,11 +11397,15 @@ public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
 # https://github.com/DCourtel/Windows_10_Focus_Assist/blob/master/FocusAssistLibrary/FocusAssistLib.cs
 # https://redplait.blogspot.com/2018/07/wnf-ids-from-perfntcdll-adk-version.html
 
-`$Focus = @{
-	Namespace        = "WinAPI"
-	Name             = "Focus"
-	Language         = "CSharp"
-	MemberDefinition = @""
+`$CompilerParameters = [System.CodeDom.Compiler.CompilerParameters]::new("System.dll")
+`$CompilerParameters.TempFiles = [System.CodeDom.Compiler.TempFileCollection]::new(`$env:TEMP, `$false)
+`$CompilerParameters.GenerateInMemory = `$true
+`$Signature = @{
+	Namespace          = "WinAPI"
+	Name               = "Focus"
+	Language           = "CSharp"
+	CompilerParameters = `$CompilerParameters
+	MemberDefinition   = @""
 [DllImport("NtDll.dll", SetLastError = true)]
 private static extern uint NtQueryWnfStateData(IntPtr pStateName, IntPtr pTypeId, IntPtr pExplicitScope, out uint nChangeStamp, out IntPtr pBuffer, ref uint nBufferSize);
 
@@ -12248,7 +11468,7 @@ public static FocusAssistState GetFocusAssistState()
 
 if (-not ("WinAPI.Focus" -as [type]))
 {
-	Add-Type @Focus
+	Add-Type @Signature
 }
 
 while ([WinAPI.Focus]::GetFocusAssistState() -ne "OFF")
@@ -12273,7 +11493,7 @@ while ([WinAPI.Focus]::GetFocusAssistState() -ne "OFF")
 	</visual>
 	<audio src="ms-winsoundevent:notification.default" />
 	<actions>
-		<action content="$([WinAPI.GetStrings]::GetString(12850))" arguments="WindowsCleanup:" activationType="protocol"/>
+		<action content="$($Localization.Run)" arguments="WindowsCleanup:" activationType="protocol"/>
 		<action content="" arguments="dismiss" activationType="system"/>
 	</actions>
 </toast>
@@ -12286,29 +11506,27 @@ while ([WinAPI.Focus]::GetFocusAssistState() -ne "OFF")
 [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("Sophia").Show(`$ToastMessage)
 "@
 
-			# Save script to be able to call them from VBS file
-			if (-not (Test-Path -Path $env:SystemRoot\System32\Tasks\Sophia))
-			{
-				New-Item -Path $env:SystemRoot\System32\Tasks\Sophia -ItemType Directory -Force
-			}
 			# Save in UTF8 with BOM
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup_Notification.ps1" -Value $ToastNotification -Encoding UTF8 -Force
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup_Notification.ps1" -Value $ToastNotificationPS -Encoding UTF8 -Force
 			# Replace here-string double quotes with single ones
 			(Get-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup_Notification.ps1" -Encoding UTF8).Replace('@""', '@"').Replace('""@', '"@') | Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup_Notification.ps1" -Encoding UTF8 -Force
 
-			# Create vbs script that will help us calling PS1 script silently, without interrupting system from Focus Assist mode turned on, when a powershell.exe console pops up
-			$ToastNotification = @"
+			# Create vbs script that will help us calling Windows_Cleanup_Notification.ps1 script silently, without interrupting system from Focus Assist mode turned on, when a powershell.exe console pops up
+			$ToastNotificationVBS = @"
 ' https://github.com/farag2/Sophia-Script-for-Windows
 ' https://t.me/sophia_chat
 
 CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoProfile -NoLogo -WindowStyle Hidden -File %SystemRoot%\System32\Tasks\Sophia\Windows_Cleanup_Notification.ps1", 0
 "@
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup_Notification.vbs" -Value $ToastNotification -Encoding Default -Force
+			# Save in UTF8 without BOM
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup_Notification.vbs" -Value $ToastNotificationVBS -Encoding Default -Force
 
 			# Create the "Windows Cleanup Notification" task
+			# We cannot create a schedule task if %COMPUTERNAME% is equal to %USERNAME%, so we have to use a "$env:COMPUTERNAME\$env:USERNAME" method
+			# https://github.com/PowerShell/PowerShell/issues/21377
 			$Action    = New-ScheduledTaskAction -Execute wscript.exe -Argument "$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup_Notification.vbs"
 			$Settings  = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable
-			$Principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Highest
+			$Principal = New-ScheduledTaskPrincipal -UserId "$env:COMPUTERNAME\$env:USERNAME" -RunLevel Highest
 			$Trigger   = New-ScheduledTaskTrigger -Daily -DaysInterval 30 -At 9pm
 			$Parameters = @{
 				TaskName    = "Windows Cleanup Notification"
@@ -12317,16 +11535,28 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 				Settings    = $Settings
 				Principal   = $Principal
 				Trigger     = $Trigger
-				Description = $Localization.CleanupNotificationTaskDescription
+				Description = $Localization.CleanupNotificationTaskDescription -f $env:USERNAME
 			}
 			Register-ScheduledTask @Parameters -Force
 
+			# Set author for scheduled task
+			$Task = Get-ScheduledTask -TaskName "Windows Cleanup Notification"
+			$Task.Author = "Team Sophia"
+			$Task | Set-ScheduledTask
+
+			# Start Task Scheduler in the end if any scheduled task was created
 			$Script:ScheduledTasks = $true
 		}
 		"Delete"
 		{
 			# Remove files first unless we cannot remove folder if there's no more tasks there
-			Remove-Item -Path "$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup_Notification.vbs", "$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup_Notification.ps1" -Force -ErrorAction Ignore
+			$Paths = @(
+				"$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup_Notification.vbs",
+				"$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup_Notification.ps1",
+				"$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup.ps1",
+				"$env:SystemRoot\System32\Tasks\Sophia\Windows_Cleanup.vbs"
+			)
+			Remove-Item -Path $Paths -Force -ErrorAction Ignore
 
 			# Remove all old tasks
 			# We have to use -ErrorAction Ignore in both cases, unless we get an error
@@ -12414,37 +11644,59 @@ function SoftwareDistributionTask
 	{
 		"Register"
 		{
-			# Checking if Windows Script Host is disabled
-			# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
-			$UserScriptHost = [Microsoft.Win32.Registry]::GetValue("HKEY_CURRENT_USER\Software\Microsoft\Windows Script Host\Settings", "Enabled", $null)
-			$MachineScriptHost = [Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\Software\Microsoft\Windows Script Host\Settings", "Enabled", $null)
-			if (($UserScriptHost -eq 0) -or ($MachineScriptHost -eq 0))
-			{
-				Write-Verbose -Message ($Localization.WindowsScriptHost -f $MyInvocation.Line.Trim()) -Verbose
-				Write-Error -Message ($Localization.WindowsScriptHost -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-				Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+			# Enable notifications in Action Center
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Force -ErrorAction Ignore
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
 
-				return
+			# Remove registry keys if Windows Script Host is disabled
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings", "HKLM:\SOFTWARE\Microsoft\Windows Script Host\Settings" -Name Enabled -Force -ErrorAction Ignore
+
+			# Enable notifications
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications -Name ToastEnabled -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\CurrentVersion\PushNotifications -Name NoToastApplicationNotification -Force -ErrorAction Ignore
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+
+			# Checking whether VBS engine is enabled
+			if ((Get-WindowsCapability -Online -Name VBSCRIPT*).State -ne "Installed")
+			{
+				try
+				{
+					Get-WindowsCapability -Online -Name VBSCRIPT* | Add-WindowsCapability -Online
+				}
+				catch
+				{
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Warning -Message ($Localization.WindowsComponentBroken -f (Get-WindowsCapability -Online -Name VBSCRIPT*).DisplayName)
+					Write-Information -MessageData "" -InformationAction Continue
+
+					Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+					Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+					Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
+
+					exit
+				}
 			}
 
 			# Checking if we're trying to create the task when it was already created as another user
 			if (Get-ScheduledTask -TaskPath "\Sophia\" -TaskName SoftwareDistribution -ErrorAction Ignore)
 			{
-				# Also we can parse $env:SystemRoot\System32\Tasks\Sophia\SoftwareDistribution to Check whether the task was created
+				# Also we can parse $env:SystemRoot\System32\Tasks\Sophia\SoftwareDistribution to сheck whether the task was created
 				$ScheduleService = New-Object -ComObject Schedule.Service
 				$ScheduleService.Connect()
 				$ScheduleService.GetFolder("\Sophia").GetTasks(0) | Where-Object -FilterScript {$_.Name -eq "SoftwareDistribution"} | Foreach-Object {
 					# Get user's SID the task was created as
 					$Script:SID = ([xml]$_.xml).Task.Principals.Principal.UserID
 				}
+
 				# Convert SID to username
-				$TaskUserAccount = (New-Object System.Security.Principal.SecurityIdentifier($SID)).Translate([System.Security.Principal.NTAccount]).Value -split "\\" | Select-Object -Last 1
+				$TaskUserAccount = (New-Object -TypeName System.Security.Principal.SecurityIdentifier($SID)).Translate([System.Security.Principal.NTAccount]).Value -split "\\" | Select-Object -Last 1
 
 				if ($TaskUserAccount -ne $env:USERNAME)
 				{
-					Write-Verbose -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount) -Verbose
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Warning -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount)
 					Write-Error -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount) -ErrorAction SilentlyContinue
-					Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 					return
 				}
@@ -12488,7 +11740,7 @@ function SoftwareDistributionTask
 			# powershell.exe process wakes up system anyway even from turned on Focus Assist mode (not a notification toast)
 			# https://github.com/DCourtel/Windows_10_Focus_Assist/blob/master/FocusAssistLibrary/FocusAssistLib.cs
 			# https://redplait.blogspot.com/2018/07/wnf-ids-from-perfntcdll-adk-version.html
-			$SoftwareDistributionTask = @"
+			$SoftwareDistributionTaskPS = @"
 # https://github.com/farag2/Sophia-Script-for-Windows
 # https://t.me/sophia_chat
 
@@ -12496,11 +11748,15 @@ function SoftwareDistributionTask
 # https://github.com/DCourtel/Windows_10_Focus_Assist/blob/master/FocusAssistLibrary/FocusAssistLib.cs
 # https://redplait.blogspot.com/2018/07/wnf-ids-from-perfntcdll-adk-version.html
 
-`$Focus = @{
-	Namespace        = "WinAPI"
-	Name             = "Focus"
-	Language         = "CSharp"
-	MemberDefinition = @""
+`$CompilerParameters = [System.CodeDom.Compiler.CompilerParameters]::new("System.dll")
+`$CompilerParameters.TempFiles = [System.CodeDom.Compiler.TempFileCollection]::new(`$env:TEMP, `$false)
+`$CompilerParameters.GenerateInMemory = `$true
+`$Signature = @{
+	Namespace          = "WinAPI"
+	Name               = "Focus"
+	Language           = "CSharp"
+	CompilerParameters = `$CompilerParameters
+	MemberDefinition   = @""
 [DllImport("NtDll.dll", SetLastError = true)]
 private static extern uint NtQueryWnfStateData(IntPtr pStateName, IntPtr pTypeId, IntPtr pExplicitScope, out uint nChangeStamp, out IntPtr pBuffer, ref uint nBufferSize);
 
@@ -12563,7 +11819,7 @@ public static FocusAssistState GetFocusAssistState()
 
 if (-not ("WinAPI.Focus" -as [type]))
 {
-	Add-Type @Focus
+	Add-Type @Signature
 }
 
 # Wait until it will be "OFF" (0)
@@ -12573,7 +11829,7 @@ while ([WinAPI.Focus]::GetFocusAssistState() -ne "OFF")
 }
 
 # Run the task
-(Get-Service -Name wuauserv).WaitForStatus('Stopped', '01:00:00')
+(Get-Service -Name wuauserv).WaitForStatus("Stopped", "01:00:00")
 Get-ChildItem -Path `$env:SystemRoot\SoftwareDistribution\Download -Recurse -Force | Remove-Item -Recurse -Force
 
 [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
@@ -12602,23 +11858,26 @@ Get-ChildItem -Path `$env:SystemRoot\SoftwareDistribution\Download -Recurse -For
 				New-Item -Path $env:SystemRoot\System32\Tasks\Sophia -ItemType Directory -Force
 			}
 			# Save in UTF8 with BOM
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\SoftwareDistributionTask.ps1" -Value $SoftwareDistributionTask -Encoding UTF8 -Force
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\SoftwareDistributionTask.ps1" -Value $SoftwareDistributionTaskPS -Encoding UTF8 -Force
 			# Replace here-string double quotes with single ones
 			(Get-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\SoftwareDistributionTask.ps1" -Encoding UTF8).Replace('@""', '@"').Replace('""@', '"@') | Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\SoftwareDistributionTask.ps1" -Encoding UTF8 -Force
 
 			# Create vbs script that will help us calling PS1 script silently, without interrupting system from Focus Assist mode turned on, when a powershell.exe console pops up
-			$SoftwareDistributionTask = @"
+			$SoftwareDistributionTaskVBS = @"
 ' https://github.com/farag2/Sophia-Script-for-Windows
 ' https://t.me/sophia_chat
 
 CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoProfile -NoLogo -WindowStyle Hidden -File %SystemRoot%\System32\Tasks\Sophia\SoftwareDistributionTask.ps1", 0
 "@
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\SoftwareDistributionTask.vbs" -Value $SoftwareDistributionTask -Encoding Default -Force
+			# Save in UTF8 without BOM
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\SoftwareDistributionTask.vbs" -Value $SoftwareDistributionTaskVBS -Encoding Default -Force
 
 			# Create the "SoftwareDistribution" task
+			# We cannot create a schedule task if %COMPUTERNAME% is equal to %USERNAME%, so we have to use a "$env:COMPUTERNAME\$env:USERNAME" method
+			# https://github.com/PowerShell/PowerShell/issues/21377
 			$Action    = New-ScheduledTaskAction -Execute wscript.exe -Argument "$env:SystemRoot\System32\Tasks\Sophia\SoftwareDistributionTask.vbs"
 			$Settings  = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable
-			$Principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Highest
+			$Principal = New-ScheduledTaskPrincipal -UserId "$env:COMPUTERNAME\$env:USERNAME" -RunLevel Highest
 			$Trigger   = New-ScheduledTaskTrigger -Daily -DaysInterval 90 -At 9pm
 			$Parameters = @{
 				TaskName    = "SoftwareDistribution"
@@ -12627,9 +11886,14 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 				Settings    = $Settings
 				Principal   = $Principal
 				Trigger     = $Trigger
-				Description = $Localization.FolderTaskDescription -f "%SystemRoot%\SoftwareDistribution\Download"
+				Description = $Localization.FolderTaskDescription -f "%SystemRoot%\SoftwareDistribution\Download", $env:USERNAME
 			}
 			Register-ScheduledTask @Parameters -Force
+
+			# Set author for scheduled task
+			$Task = Get-ScheduledTask -TaskName "SoftwareDistribution"
+			$Task.Author = "Team Sophia"
+			$Task | Set-ScheduledTask
 
 			$Script:ScheduledTasks = $true
 		}
@@ -12719,23 +11983,44 @@ function TempTask
 	{
 		"Register"
 		{
-			# Checking if Windows Script Host is disabled
-			# Due to "Set-StrictMode -Version Latest" we have to use GetValue()
-			$UserScriptHost = [Microsoft.Win32.Registry]::GetValue("HKEY_CURRENT_USER\Software\Microsoft\Windows Script Host\Settings", "Enabled", $null)
-			$MachineScriptHost = [Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\Software\Microsoft\Windows Script Host\Settings", "Enabled", $null)
-			if (($UserScriptHost -eq 0) -or ($MachineScriptHost -eq 0))
-			{
-				Write-Verbose -Message ($Localization.WindowsScriptHost -f $MyInvocation.Line.Trim()) -Verbose
-				Write-Error -Message ($Localization.WindowsScriptHost -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-				Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+			# Enable notifications in Action Center
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Force -ErrorAction Ignore
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
 
-				return
+			# Remove registry keys if Windows Script Host is disabled
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings", "HKLM:\SOFTWARE\Microsoft\Windows Script Host\Settings" -Name Enabled -Force -ErrorAction Ignore
+
+			# Enable notifications
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications -Name ToastEnabled -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\CurrentVersion\PushNotifications -Name NoToastApplicationNotification -Force -ErrorAction Ignore
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+
+			# Checking whether VBS engine is enabled
+			if ((Get-WindowsCapability -Online -Name VBSCRIPT*).State -ne "Installed")
+			{
+				try
+				{
+					Get-WindowsCapability -Online -Name VBSCRIPT* | Add-WindowsCapability -Online
+				}
+				catch
+				{
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Warning -Message ($Localization.WindowsComponentBroken -f (Get-WindowsCapability -Online -Name VBSCRIPT*).DisplayName)
+					Write-Information -MessageData "" -InformationAction Continue
+
+					Write-Verbose -Message "https://www.microsoft.com/software-download/windows11" -Verbose
+					Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+					Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
+
+					exit
+				}
 			}
 
 			# Checking if we're trying to create the task when it was already created as another user
 			if (Get-ScheduledTask -TaskPath "\Sophia\" -TaskName Temp -ErrorAction Ignore)
 			{
-				# Also we can parse $env:SystemRoot\System32\Tasks\Sophia\Temp to Check whether the task was created
+				# Also we can parse $env:SystemRoot\System32\Tasks\Sophia\Temp to сheck whether the task was created
 				$ScheduleService = New-Object -ComObject Schedule.Service
 				$ScheduleService.Connect()
 				$ScheduleService.GetFolder("\Sophia").GetTasks(0) | Where-Object -FilterScript {$_.Name -eq "Temp"} | Foreach-Object {
@@ -12744,13 +12029,13 @@ function TempTask
 				}
 
 				# Convert SID to username
-				$TaskUserAccount = (New-Object System.Security.Principal.SecurityIdentifier($SID)).Translate([System.Security.Principal.NTAccount]).Value -split "\\" | Select-Object -Last 1
+				$TaskUserAccount = (New-Object -TypeName System.Security.Principal.SecurityIdentifier($SID)).Translate([System.Security.Principal.NTAccount]).Value -split "\\" | Select-Object -Last 1
 
 				if ($TaskUserAccount -ne $env:USERNAME)
 				{
-					Write-Verbose -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount) -Verbose
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Warning -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount)
 					Write-Error -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount) -ErrorAction SilentlyContinue
-					Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 					return
 				}
@@ -12792,7 +12077,7 @@ function TempTask
 
 			# We have to call PowerShell script via another VBS script silently because VBS has appropriate feature to suppress console appearing (none of other workarounds work)
 			# powershell.exe process wakes up system anyway even from turned on Focus Assist mode (not a notification toast)
-			$TempTask = @"
+			$TempTaskPS = @"
 # https://github.com/farag2/Sophia-Script-for-Windows
 # https://t.me/sophia_chat
 
@@ -12800,11 +12085,15 @@ function TempTask
 # https://github.com/DCourtel/Windows_10_Focus_Assist/blob/master/FocusAssistLibrary/FocusAssistLib.cs
 # https://redplait.blogspot.com/2018/07/wnf-ids-from-perfntcdll-adk-version.html
 
-`$Focus = @{
-	Namespace        = "WinAPI"
-	Name             = "Focus"
-	Language         = "CSharp"
-	MemberDefinition = @""
+`$CompilerParameters = [System.CodeDom.Compiler.CompilerParameters]::new("System.dll")
+`$CompilerParameters.TempFiles = [System.CodeDom.Compiler.TempFileCollection]::new(`$env:TEMP, `$false)
+`$CompilerParameters.GenerateInMemory = `$true
+`$Signature = @{
+	Namespace          = "WinAPI"
+	Name               = "Focus"
+	Language           = "CSharp"
+	CompilerParameters = `$CompilerParameters
+	MemberDefinition   = @""
 [DllImport("NtDll.dll", SetLastError = true)]
 private static extern uint NtQueryWnfStateData(IntPtr pStateName, IntPtr pTypeId, IntPtr pExplicitScope, out uint nChangeStamp, out IntPtr pBuffer, ref uint nBufferSize);
 
@@ -12867,7 +12156,7 @@ public static FocusAssistState GetFocusAssistState()
 
 if (-not ("WinAPI.Focus" -as [type]))
 {
-	Add-Type @Focus
+	Add-Type @Signature
 }
 
 # Wait until it will be "OFF" (0)
@@ -12883,6 +12172,9 @@ Get-ChildItem -Path `$env:TEMP -Recurse -Force | Where-Object -FilterScript {`$_
 `$Paths = @(
 	# Get "C:\$WinREAgent" path because we need to open brackets for $env:SystemDrive but not for $WinREAgent
 	(-join ("`$env:SystemDrive\", '`$WinREAgent')),
+	(-join ("`$env:SystemDrive\", '`$SysReset')),
+	(-join ("`$env:SystemDrive\", '`$Windows.~WS')),
+	"`$env:SystemDrive\ESD",
 	"`$env:SystemDrive\Intel",
 	"`$env:SystemDrive\PerfLogs"
 )
@@ -12919,23 +12211,26 @@ Remove-Item -Path `$Paths -Recurse -Force
 				New-Item -Path $env:SystemRoot\System32\Tasks\Sophia -ItemType Directory -Force
 			}
 			# Save in UTF8 with BOM
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\TempTask.ps1" -Value $TempTask -Encoding UTF8 -Force
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\TempTask.ps1" -Value $TempTaskPS -Encoding UTF8 -Force
 			# Replace here-string double quotes with single ones
 			(Get-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\TempTask.ps1" -Encoding UTF8).Replace('@""', '@"').Replace('""@', '"@') | Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\TempTask.ps1" -Encoding UTF8 -Force
 
 			# Create vbs script that will help us calling PS1 script silently, without interrupting system from Focus Assist mode turned on, when a powershell.exe console pops up
-			$TempTask = @"
+			$TempTaskVBS = @"
 ' https://github.com/farag2/Sophia-Script-for-Windows
 ' https://t.me/sophia_chat
 
 CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoProfile -NoLogo -WindowStyle Hidden -File %SystemRoot%\System32\Tasks\Sophia\TempTask.ps1", 0
 "@
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\TempTask.vbs" -Value $TempTask -Encoding Default -Force
+			# Save in UTF8 without BOM
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Sophia\TempTask.vbs" -Value $TempTaskVBS -Encoding Default -Force
 
 			# Create the "Temp" task
+			# We cannot create a schedule task if %COMPUTERNAME% is equal to %USERNAME%, so we have to use a "$env:COMPUTERNAME\$env:USERNAME" method
+			# https://github.com/PowerShell/PowerShell/issues/21377
 			$Action    = New-ScheduledTaskAction -Execute wscript.exe -Argument "$env:SystemRoot\System32\Tasks\Sophia\TempTask.vbs"
 			$Settings  = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable
-			$Principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Highest
+			$Principal = New-ScheduledTaskPrincipal -UserId "$env:COMPUTERNAME\$env:USERNAME" -RunLevel Highest
 			$Trigger   = New-ScheduledTaskTrigger -Daily -DaysInterval 60 -At 9pm
 			$Parameters = @{
 				TaskName    = "Temp"
@@ -12944,9 +12239,14 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 				Settings    = $Settings
 				Principal   = $Principal
 				Trigger     = $Trigger
-				Description = $Localization.FolderTaskDescription -f "%TEMP%"
+				Description = $Localization.FolderTaskDescription -f "%TEMP%", $env:USERNAME
 			}
 			Register-ScheduledTask @Parameters -Force
+
+			# Set author for scheduled task
+			$Task = Get-ScheduledTask -TaskName "Temp"
+			$Task.Author = "Team Sophia"
+			$Task | Set-ScheduledTask
 
 			$Script:ScheduledTasks = $true
 		}
@@ -13028,18 +12328,24 @@ function NetworkProtection
 		$Disable
 	)
 
-	if ($Script:DefenderEnabled)
+	if ((-not $Script:DefenderEnabled) -or $Script:DefenderMpPreferenceBroken)
 	{
-		switch ($PSCmdlet.ParameterSetName)
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+		return
+	}
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
 		{
-			"Enable"
-			{
-				Set-MpPreference -EnableNetworkProtection Enabled
-			}
-			"Disable"
-			{
-				Set-MpPreference -EnableNetworkProtection Disabled
-			}
+			Set-MpPreference -EnableNetworkProtection Enabled
+		}
+		"Disable"
+		{
+			Set-MpPreference -EnableNetworkProtection Disabled
 		}
 	}
 }
@@ -13082,18 +12388,84 @@ function PUAppsDetection
 		$Disable
 	)
 
-	if ($Script:DefenderEnabled)
+	if ((-not $Script:DefenderEnabled) -or $Script:DefenderMpPreferenceBroken)
 	{
-		switch ($PSCmdlet.ParameterSetName)
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+		return
+	}
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
 		{
-			"Enable"
-			{
-				Set-MpPreference -PUAProtection Enabled
-			}
-			"Disable"
-			{
-				Set-MpPreference -PUAProtection Disabled
-			}
+			Set-MpPreference -PUAProtection Enabled
+		}
+		"Disable"
+		{
+			Set-MpPreference -PUAProtection Disabled
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	Sandboxing for Microsoft Defender
+
+	.PARAMETER Enable
+	Enable sandboxing for Microsoft Defender
+
+	.PARAMETER Disable
+	Disable sandboxing for Microsoft Defender
+
+	.EXAMPLE
+	DefenderSandbox -Enable
+
+	.EXAMPLE
+	DefenderSandbox -Disable
+
+	.NOTES
+	Machine-wide
+#>
+function DefenderSandbox
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	if (-not $Script:DefenderEnabled)
+	{
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+		return
+	}
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			& "$env:SystemRoot\System32\setx.exe" /M MP_FORCE_USE_SANDBOX 1
+		}
+		"Disable"
+		{
+			& "$env:SystemRoot\System32\setx.exe" /M MP_FORCE_USE_SANDBOX 0
 		}
 	}
 }
@@ -13101,130 +12473,31 @@ function PUAppsDetection
 # Dismiss Microsoft Defender offer in the Windows Security about signing in Microsoft account
 function DismissMSAccount
 {
-	if ($Script:DefenderEnabled)
+	if (-not $Script:DefenderEnabled)
 	{
-		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Name AccountProtection_MicrosoftAccount_Disconnected -PropertyType DWord -Value 1 -Force
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+		return
 	}
+
+	New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Name AccountProtection_MicrosoftAccount_Disconnected -PropertyType DWord -Value 1 -Force
 }
 
 # Dismiss Microsoft Defender offer in the Windows Security about turning on the SmartScreen filter for Microsoft Edge
 function DismissSmartScreenFilter
 {
-	if ($Script:DefenderEnabled)
+	if (-not $Script:DefenderEnabled)
 	{
-		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Name AppAndBrowser_EdgeSmartScreenOff -PropertyType DWord -Value 0 -Force
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+		return
 	}
-}
 
-<#
-	.SYNOPSIS
-	Audit process creation
-
-	.PARAMETER Enable
-	Enable events auditing generated when a process is created (starts)
-
-	.PARAMETER Disable
-	Disable events auditing generated when a process is created (starts)
-
-	.EXAMPLE
-	AuditProcess -Enable
-
-	.EXAMPLE
-	AuditProcess -Disable
-
-	.NOTES
-	Machine-wide
-#>
-function AuditProcess
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			auditpol /set /subcategory:"{0CCE922B-69AE-11D9-BED3-505054503030}" /success:enable /failure:enable
-		}
-		"Disable"
-		{
-			auditpol /set /subcategory:"{0CCE922B-69AE-11D9-BED3-505054503030}" /success:disable /failure:disable
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Сommand line auditing
-
-	.PARAMETER Enable
-	Include command line in process creation events
-
-	.PARAMETER Disable
-	Do not include command line in process creation events
-
-	.EXAMPLE
-	CommandLineProcessAudit -Enable
-
-	.EXAMPLE
-	CommandLineProcessAudit -Disable
-
-	.NOTES
-	In order this feature to work events auditing (ProcessAudit -Enable) will be enabled
-
-	.NOTES
-	Machine-wide
-#>
-function CommandLineProcessAudit
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			# Enable events auditing generated when a process is created (starts)
-			auditpol /set /subcategory:"{0CCE922B-69AE-11D9-BED3-505054503030}" /success:enable /failure:enable
-
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -PropertyType DWord -Value 1 -Force
-
-			Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Type DWORD -Value 1
-		}
-		"Disable"
-		{
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Force -ErrorAction Ignore
-			Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Type CLEAR
-		}
-	}
+	New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Name AppAndBrowser_EdgeSmartScreenOff -PropertyType DWord -Value 0 -Force
 }
 
 <#
@@ -13244,7 +12517,7 @@ function CommandLineProcessAudit
 	EventViewerCustomView -Disable
 
 	.NOTES
-	In order this feature to work events auditing (ProcessAudit -Enable) and command line (CommandLineProcessAudit -Enable) in process creation events will be enabled
+	In order this feature to work events auditing and command line in process creation events will be enabled
 
 	.NOTES
 	Machine-wide
@@ -13309,6 +12582,8 @@ function EventViewerCustomView
 		}
 		"Disable"
 		{
+			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Force -ErrorAction Ignore
+			Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Type CLEAR
 			Remove-Item -Path "$env:ProgramData\Microsoft\Event Viewer\Views\ProcessCreation.xml" -Force -ErrorAction Ignore
 		}
 	}
@@ -13472,18 +12747,24 @@ function AppsSmartScreen
 		$Enable
 	)
 
-	if ($Script:DefenderEnabled)
+	if (-not $Script:DefenderEnabled)
 	{
-		switch ($PSCmdlet.ParameterSetName)
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+		return
+	}
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Disable"
 		{
-			"Disable"
-			{
-				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name SmartScreenEnabled -PropertyType String -Value Off -Force
-			}
-			"Enable"
-			{
-				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name SmartScreenEnabled -PropertyType String -Value Warn -Force
-			}
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name SmartScreenEnabled -PropertyType String -Value Off -Force
+		}
+		"Enable"
+		{
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name SmartScreenEnabled -PropertyType String -Value Warn -Force
 		}
 	}
 }
@@ -13525,6 +12806,10 @@ function SaveZoneInformation
 		[switch]
 		$Enable
 	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Type CLEAR
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -13591,6 +12876,19 @@ function WindowsScriptHost
 	{
 		"Disable"
 		{
+			# Checking whether any scheduled tasks were created before, because they rely on Windows Host running vbs files
+			Get-ScheduledTask -TaskName SoftwareDistribution, Temp, "Windows Cleanup", "Windows Cleanup Notification" -ErrorAction Ignore | ForEach-Object -Process {
+				# Skip if a scheduled task exists
+				if ($_.State -eq "Ready")
+				{
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+					Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+					break
+				}
+			}
+
 			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings"))
 			{
 				New-Item -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings" -Force
@@ -13642,8 +12940,13 @@ function WindowsSandbox
 		$Enable
 	)
 
-	if (-not (Get-WindowsEdition -Online | Where-Object -FilterScript {($_.Edition -eq "Professional") -or ($_.Edition -like "Enterprise*")}))
+	$EditionID = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").EditionID
+	if (($EditionID -notmatch "Professional") -and ($EditionID -notmatch "Enterprise") -and ($EditionID -notmatch "Education"))
 	{
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
 		return
 	}
 
@@ -13669,6 +12972,7 @@ function WindowsSandbox
 				catch [System.Exception]
 				{
 					Write-Error -Message $Localization.EnableHardwareVT -ErrorAction SilentlyContinue
+					Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 				}
 			}
 		}
@@ -13692,6 +12996,7 @@ function WindowsSandbox
 				catch [System.Exception]
 				{
 					Write-Error -Message $Localization.EnableHardwareVT -ErrorAction SilentlyContinue
+					Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 				}
 			}
 		}
@@ -13742,19 +13047,17 @@ function DNSoverHTTPS
 		$Enable,
 
 		[Parameter(Mandatory = $false)]
-		[ValidateSet("1.0.0.1", "1.1.1.1", "149.112.112.112", "8.8.4.4", "8.8.8.8", "9.9.9.9")]
-		# Isolate the IPv4 addresses only
 		[ValidateScript({
-			(@((Get-ChildItem -Path HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters\DohWellKnownServers).PSChildName) | Where-Object {$_ -notmatch ":"}) -contains $_
+			# Isolate IPv4 IP addresses and check whether $PrimaryDNS is not equal to $SecondaryDNS
+			((@((Get-ChildItem -Path HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters\DohWellKnownServers).PSChildName) | Where-Object -FilterScript {($_ -as [IPAddress]).AddressFamily -ne "InterNetworkV6"}) -contains $_) -and ($_ -ne $SecondaryDNS)
 		})]
 		[string]
 		$PrimaryDNS,
 
 		[Parameter(Mandatory = $false)]
-		[ValidateSet("1.0.0.1", "1.1.1.1", "149.112.112.112", "8.8.4.4", "8.8.8.8", "9.9.9.9")]
-		# Isolate the IPv4 addresses only
 		[ValidateScript({
-			(@((Get-ChildItem -Path HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters\DohWellKnownServers).PSChildName) | Where-Object {$_ -notmatch ":"}) -contains $_
+			# Isolate IPv4 IP addresses and check whether $PrimaryDNS is not equal to $SecondaryDNS
+			((@((Get-ChildItem -Path HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters\DohWellKnownServers).PSChildName) | Where-Object -FilterScript {($_ -as [IPAddress]).AddressFamily -ne "InterNetworkV6"}) -contains $_) -and ($_ -ne $PrimaryDNS)
 		})]
 		[string]
 		$SecondaryDNS,
@@ -13791,13 +13094,13 @@ function DNSoverHTTPS
 		"Enable"
 		{
 			# Set a primary and secondary DNS servers
-			if (-not (Get-CimInstance -ClassName CIM_ComputerSystem).HypervisorPresent)
+			if ((Get-CimInstance -ClassName CIM_ComputerSystem).HypervisorPresent)
 			{
-				Get-NetAdapter -Physical | Get-NetIPInterface -AddressFamily IPv4 | Set-DnsClientServerAddress -ServerAddresses $PrimaryDNS, $SecondaryDNS
+				Get-NetRoute | Where-Object -FilterScript {$_.DestinationPrefix -eq "0.0.0.0/0"} | Get-NetAdapter | Set-DnsClientServerAddress -ServerAddresses $PrimaryDNS, $SecondaryDNS
 			}
 			else
 			{
-				Get-NetRoute | Where-Object -FilterScript {$_.DestinationPrefix -eq "0.0.0.0/0"} | Get-NetAdapter | Set-DnsClientServerAddress -ServerAddresses $PrimaryDNS, $SecondaryDNS
+				Get-NetAdapter -Physical | Get-NetIPInterface -AddressFamily IPv4 | Set-DnsClientServerAddress -ServerAddresses $PrimaryDNS, $SecondaryDNS
 			}
 
 			foreach ($InterfaceGuid in $InterfaceGuids)
@@ -13822,30 +13125,38 @@ function DNSoverHTTPS
 				{($_ -ne 203) -and ($_ -ne 29)}
 				{
 					Write-Information -MessageData "" -InformationAction Continue
-					Write-Verbose -Message $Localization.Skipped -Verbose
+					Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+					Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 					return
 				}
 			}
 
 			# Set a primary and secondary DNS servers
+			# https://www.comss.ru/page.php?id=7315
 			if (-not (Get-CimInstance -ClassName CIM_ComputerSystem).HypervisorPresent)
 			{
-				Get-NetAdapter -Physical | Get-NetIPInterface -AddressFamily IPv4 | Set-DnsClientServerAddress -ServerAddresses 92.223.65.71
+				Get-NetAdapter -Physical | Get-NetIPInterface -AddressFamily IPv4 | Set-DnsClientServerAddress -ServerAddresses 83.220.169.155, 195.133.25.16
 			}
 			else
 			{
-				Get-NetRoute | Where-Object -FilterScript {$_.DestinationPrefix -eq "0.0.0.0/0"} | Get-NetAdapter | Set-DnsClientServerAddress -ServerAddresses 92.223.65.71
+				Get-NetRoute | Where-Object -FilterScript {$_.DestinationPrefix -eq "0.0.0.0/0"} | Get-NetAdapter | Set-DnsClientServerAddress -ServerAddresses 83.220.169.155, 195.133.25.16
 			}
 
 			foreach ($InterfaceGuid in $InterfaceGuids)
 			{
-				if (-not (Test-Path -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\92.223.65.71"))
+				if (-not (Test-Path -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\83.220.169.155"))
 				{
-					New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\92.223.65.71" -Force
+					New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\83.220.169.155" -Force
 				}
-				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\92.223.65.71" -Name DohFlags -PropertyType QWord -Value 2 -Force
-				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\92.223.65.71" -Name DohTemplate -PropertyType String -Value https://dns.comss.one/dns-query -Force
+				if (-not (Test-Path -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\195.133.25.16"))
+				{
+					New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\195.133.25.16" -Force
+				}
+				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\83.220.169.155" -Name DohFlags -PropertyType QWord -Value 2 -Force
+				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\83.220.169.155" -Name DohTemplate -PropertyType String -Value https://dns.comss.one/dns-query -Force
+				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\195.133.25.16" -Name DohFlags -PropertyType QWord -Value 2 -Force
+				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\195.133.25.16" -Name DohTemplate -PropertyType String -Value https://dns.comss.one/dns-query -Force
 			}
 		}
 		"Disable"
@@ -13878,7 +13189,7 @@ function DNSoverHTTPS
 	Local Security Authority protection
 
 	.PARAMETER Enable
-	Enable Local Security Authority protection to prevent code injection
+	Enable Local Security Authority protection to prevent code injection without UEFI lock
 
 	.PARAMETER Disable
 	Disable Local Security Authority protection
@@ -13913,6 +13224,10 @@ function LocalSecurityAuthority
 		[switch]
 		$Disable
 	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\System -Name RunAsPPL -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\System -Name RunAsPPL -Type CLEAR
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -13996,7 +13311,7 @@ function MSIExtractContext
 			{
 				New-Item -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract\Command -Force
 			}
-			$Value = "{0}" -f "msiexec.exe /a `"%1`" /qb TARGETDIR=`"%1 extracted`""
+			$Value = "msiexec.exe /a `"%1`" /qb TARGETDIR=`"%1 extracted`""
 			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract\Command -Name "(default)" -PropertyType String -Value $Value -Force
 			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract -Name MUIVerb -PropertyType String -Value "@shell32.dll,-37514" -Force
 			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract -Name Icon -PropertyType String -Value "shell32.dll,-16817" -Force
@@ -14054,7 +13369,7 @@ function CABInstallContext
 			{
 				New-Item -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas\Command -Force
 			}
-			$Value = "{0}" -f "cmd /c DISM.exe /Online /Add-Package /PackagePath:`"%1`" /NoRestart & pause"
+			$Value = "cmd /c DISM.exe /Online /Add-Package /PackagePath:`"%1`" /NoRestart & pause"
 			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas\Command -Name "(default)" -PropertyType String -Value $Value -Force
 			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas -Name MUIVerb -PropertyType String -Value "@shell32.dll,-10210" -Force
 			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas -Name HasLUAShield -PropertyType String -Value "" -Force
@@ -14062,118 +13377,6 @@ function CABInstallContext
 		"Hide"
 		{
 			Remove-Item -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas -Recurse -Force -ErrorAction Ignore
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	The "Cast to Device" item in the media files and folders context menu
-
-	.PARAMETER Hide
-	Hide the "Cast to Device" item from the media files and folders context menu
-
-	.PARAMETER Show
-	Show the "Cast to Device" item in the media files and folders context menu
-
-	.EXAMPLE
-	CastToDeviceContext -Hide
-
-	.EXAMPLE
-	CastToDeviceContext -Show
-
-	.NOTES
-	Current user
-#>
-function CastToDeviceContext
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
-
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{7AD84985-87B4-4a16-BE58-8B72A5B390F7}" -Force -ErrorAction Ignore
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			if (-not (Test-Path -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked"))
-			{
-				New-Item -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force
-			}
-			New-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{7AD84985-87B4-4a16-BE58-8B72A5B390F7}" -PropertyType String -Value "" -Force
-		}
-		"Show"
-		{
-			Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{7AD84985-87B4-4a16-BE58-8B72A5B390F7}" -Force -ErrorAction Ignore
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	The "Share" item in the context menu
-
-	.PARAMETER Hide
-	Hide the "Share" item from the context menu
-
-	.PARAMETER Show
-	Show the "Share" item in the context menu
-
-	.EXAMPLE
-	ShareContext -Hide
-
-	.EXAMPLE
-	ShareContext -Show
-
-	.NOTES
-	Current user
-#>
-function ShareContext
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			Remove-Item -Path "Registry::HKEY_CLASSES_ROOT\AllFilesystemObjects\shellex\ContextMenuHandlers\ModernSharing" -Recurse -Force -ErrorAction Ignore
-		}
-		"Show"
-		{
-			if (-not (Test-Path -Path "Registry::HKEY_CLASSES_ROOT\AllFilesystemObjects\shellex\ContextMenuHandlers\ModernSharing"))
-			{
-				New-Item -Path "Registry::HKEY_CLASSES_ROOT\AllFilesystemObjects\shellex\ContextMenuHandlers\ModernSharing" -Force
-			}
-			New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\AllFilesystemObjects\shellex\ContextMenuHandlers\ModernSharing" -Name "(default)" -PropertyType String -Value "{e2bf9676-5f8f-435c-97eb-11607a5bedf7}" -Force
 		}
 	}
 }
@@ -14218,6 +13421,10 @@ function EditWithClipchampContext
 
 	if (-not (Get-AppxPackage -Name Clipchamp.Clipchamp))
 	{
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
 		return
 	}
 
@@ -14227,15 +13434,147 @@ function EditWithClipchampContext
 	{
 		"Hide"
 		{
-			if (-not (Test-Path -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked"))
+			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked"))
 			{
-				New-Item -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force
+				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force
 			}
-			New-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -PropertyType String -Value "" -Force
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -PropertyType String -Value "" -Force
 		}
 		"Show"
 		{
-			Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -Force -ErrorAction Ignore
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	The "Edit with Photos" item in the media files context menu
+
+	.PARAMETER Hide
+	Hide the "Edit with Photos" item from the media files context menu
+
+	.PARAMETER Show
+	Show the "Edit with Photos" item in the media files context menu
+
+	.EXAMPLE
+	EditWithPhotosContext -Hide
+
+	.EXAMPLE
+	EditWithPhotosContext -Show
+
+	.NOTES
+	Current user
+#>
+function EditWithPhotosContext
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Hide"
+		)]
+		[switch]
+		$Hide,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Show"
+		)]
+		[switch]
+		$Show
+	)
+
+	if (-not (Get-AppxPackage -Name Microsoft.Windows.Photos))
+	{
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+		return
+	}
+
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{BFE0E2A4-C70C-4AD7-AC3D-10D1ECEBB5B4}" -Force -ErrorAction Ignore
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Hide"
+		{
+			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked"))
+			{
+				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force
+			}
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{BFE0E2A4-C70C-4AD7-AC3D-10D1ECEBB5B4}" -PropertyType String -Value "" -Force
+		}
+		"Show"
+		{
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{BFE0E2A4-C70C-4AD7-AC3D-10D1ECEBB5B4}" -Force -ErrorAction Ignore
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	The "Edit with Paint" item in the media files context menu
+
+	.PARAMETER Hide
+	Hide the "Edit with Paint" item from the media files context menu
+
+	.PARAMETER Show
+	Show the "Edit with Paint" item in the media files context menu
+
+	.EXAMPLE
+	EditWithPaintContext -Hide
+
+	.EXAMPLE
+	EditWithPaintContext -Show
+
+	.NOTES
+	Current user
+#>
+function EditWithPaintContext
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Hide"
+		)]
+		[switch]
+		$Hide,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Show"
+		)]
+		[switch]
+		$Show
+	)
+
+	if (-not (Get-AppxPackage -Name Microsoft.Paint))
+	{
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
+		return
+	}
+
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{2430F218-B743-4FD6-97BF-5C76541B4AE9}" -Force -ErrorAction Ignore
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Hide"
+		{
+			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked"))
+			{
+				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force
+			}
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{2430F218-B743-4FD6-97BF-5C76541B4AE9}" -PropertyType String -Value "" -Force
+		}
+		"Show"
+		{
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{2430F218-B743-4FD6-97BF-5C76541B4AE9}" -Force -ErrorAction Ignore
 		}
 	}
 }
@@ -14289,108 +13628,6 @@ function PrintCMDContext
 		{
 			Remove-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\batfile\shell\print -Name ProgrammaticAccessOnly -Force -ErrorAction Ignore
 			Remove-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\cmdfile\shell\print -Name ProgrammaticAccessOnly -Force -ErrorAction Ignore
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	The "Include in Library" item in the folders and drives context menu
-
-	.PARAMETER Hide
-	Hide the "Include in Library" item from the folders and drives context menu
-
-	.PARAMETER Show
-	Show the "Include in Library" item in the folders and drives context menu
-
-	.EXAMPLE
-	IncludeInLibraryContext -Hide
-
-	.EXAMPLE
-	IncludeInLibraryContext -Show
-
-	.NOTES
-	Current user
-#>
-function IncludeInLibraryContext
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Folder\ShellEx\ContextMenuHandlers\Library Location" -Name "(default)" -PropertyType String -Value "-{3dad6c5d-2167-4cae-9914-f99e41c12cfa}" -Force
-		}
-		"Show"
-		{
-			New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Folder\ShellEx\ContextMenuHandlers\Library Location" -Name "(default)" -PropertyType String -Value "{3dad6c5d-2167-4cae-9914-f99e41c12cfa}" -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	The "Send to" item in the folders context menu
-
-	.PARAMETER Hide
-	Hide the "Send to" item from the folders context menu
-
-	.PARAMETER Show
-	Show the "Send to" item in the folders context menu
-
-	.EXAMPLE
-	SendToContext -Hide
-
-	.EXAMPLE
-	SendToContext -Show
-
-	.NOTES
-	Current user
-#>
-function SendToContext
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AllFilesystemObjects\shellex\ContextMenuHandlers\SendTo -Name "(default)" -PropertyType String -Value "-{7BA4C740-9E81-11CF-99D3-00AA004AE837}" -Force
-		}
-		"Show"
-		{
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AllFilesystemObjects\shellex\ContextMenuHandlers\SendTo -Name "(default)" -PropertyType String -Value "{7BA4C740-9E81-11CF-99D3-00AA004AE837}" -Force
 		}
 	}
 }
@@ -14540,6 +13777,10 @@ function UseStoreOpenWith
 		$Show
 	)
 
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Force -ErrorAction Ignore
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Type CLEAR
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Hide"
@@ -14600,6 +13841,10 @@ function OpenWindowsTerminalContext
 
 	if (-not (Get-AppxPackage -Name Microsoft.WindowsTerminal))
 	{
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
 		return
 	}
 
@@ -14609,15 +13854,15 @@ function OpenWindowsTerminalContext
 	{
 		"Show"
 		{
-			Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -Force -ErrorAction Ignore
 		}
 		"Hide"
 		{
-			if (-not (Test-Path -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked"))
+			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked"))
 			{
-				New-Item -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force
+				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force
 			}
-			New-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -PropertyType String -Value "" -Force
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -PropertyType String -Value "" -Force
 		}
 	}
 }
@@ -14662,6 +13907,10 @@ function OpenWindowsTerminalAdminContext
 
 	if (-not (Get-AppxPackage -Name Microsoft.WindowsTerminal))
 	{
+		Write-Information -MessageData "" -InformationAction Continue
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+
 		return
 	}
 
@@ -14678,12 +13927,14 @@ function OpenWindowsTerminalAdminContext
 	}
 	catch [System.ArgumentException]
 	{
-		Write-Error -Message ($Global:Error.Exception.Message | Select-Object -First 1) -ErrorAction SilentlyContinue
+		Write-Warning -Message (($Global:Error.Exception.Message | Select-Object -First 1))
+		Write-Error -Message (($Global:Error.Exception.Message | Select-Object -First 1)) -ErrorAction SilentlyContinue
 
 		Invoke-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"
 
 		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.Skipped -Verbose
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
@@ -14692,7 +13943,7 @@ function OpenWindowsTerminalAdminContext
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -ErrorAction Ignore
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -ErrorAction Ignore
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -ErrorAction Ignore
 
 			if ($Terminal.profiles.defaults.elevate)
@@ -14720,68 +13971,13 @@ function OpenWindowsTerminalAdminContext
 	# Save in UTF-8 with BOM despite JSON must not has the BOM: https://datatracker.ietf.org/doc/html/rfc8259#section-8.1. Unless Terminal profile names which contains non-Latin characters will have "?" instead of titles
 	ConvertTo-Json -InputObject $Terminal -Depth 4 | Set-Content -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Encoding UTF8 -Force
 }
-
-<#
-	.SYNOPSIS
-	The "Show more options" in the context menu
-
-	.PARAMETER Enable
-	Enable the Windows 10 context menu style
-
-	.PARAMETER Disable
-	Disable the Windows 10 context menu style
-
-	.EXAMPLE
-	Windows10ContextMenu -Enable
-
-	.EXAMPLE
-	Windows10ContextMenu -Disable
-
-	.NOTES
-	Current user
-#>
-function Windows10ContextMenu
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Disable"
-		{
-			Remove-Item -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}" -Recurse -Force -ErrorAction Ignore
-		}
-		"Enable"
-		{
-			if (-not (Test-Path -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32"))
-			{
-				New-Item -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" -ItemType Directory -Force
-			}
-			New-ItemProperty -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" -Name "(default)" -PropertyType String -Value "" -Force
-		}
-	}
-}
 #endregion Context menu
 
 #region Update Policies
 <#
 	.SYNOPSIS
 	Display all policy registry keys (even manually created ones) in the Local Group Policy Editor snap-in (gpedit.msc)
-	This can take up to 30 minutes, depending on on the number of policies created in the registry and your system resources
+	This can take up to 30 minutes, depending on the number of policies created in the registry and your system resources
 
 	.EXAMPLE
 	UpdateLGPEPolicies
@@ -14798,7 +13994,8 @@ function UpdateLGPEPolicies
 	if (-not (Test-Path -Path "$env:SystemRoot\System32\gpedit.msc"))
 	{
 		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.Skipped -Verbose
+		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
@@ -14812,6 +14009,8 @@ function UpdateLGPEPolicies
 	Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
 
 	Write-Verbose -Message $Localization.GPOUpdate -Verbose
+
+	Write-Information -MessageData "" -InformationAction Continue
 	Write-Verbose -Message HKLM -Verbose
 	Write-Information -MessageData "" -InformationAction Continue
 
@@ -14820,11 +14019,11 @@ function UpdateLGPEPolicies
 		"HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies",
 		"HKLM:\SOFTWARE\Policies\Microsoft"
 	)
-	foreach ($Path in (@(Get-ChildItem -Path $LM_Paths -Recurse -Force)))
+	foreach ($Path in (@(Get-ChildItem -Path $LM_Paths -Recurse -Force -ErrorAction Ignore)))
 	{
 		foreach ($Item in $Path.Property)
 		{
-			# Check whether property isn't equal to "(default)" and exists
+			# Checking whether property isn't equal to "(default)" and exists
 			if (($null -ne $Item) -and ($Item -ne "(default)"))
 			{
 				# Where all ADMX templates are located to compare with
@@ -14872,6 +14071,7 @@ function UpdateLGPEPolicies
 
 	Write-Information -MessageData "" -InformationAction Continue
 	Write-Verbose -Message HKCU -Verbose
+	Write-Information -MessageData "" -InformationAction Continue
 
 	# Current User policies paths to scan recursively
 	$CU_Paths = @(
@@ -14882,7 +14082,7 @@ function UpdateLGPEPolicies
 	{
 		foreach ($Item in $Path.Property)
 		{
-			# Check whether property isn't equal to "(default)" and exists
+			# Checking whether property isn't equal to "(default)" and exists
 			if (($null -ne $Item) -and ($Item -ne "(default)"))
 			{
 				# Where all ADMX templates are located to compare with
@@ -14936,11 +14136,12 @@ function UpdateLGPEPolicies
 function PostActions
 {
 	#region Refresh Environment
-	$UpdateEnvironment = @{
-		Namespace        = "WinAPI"
-		Name             = "UpdateEnvironment"
-		Language         = "CSharp"
-		MemberDefinition = @"
+	$Signature = @{
+		Namespace          = "WinAPI"
+		Name               = "UpdateEnvironment"
+		Language           = "CSharp"
+		CompilerParameters = $CompilerParameters
+		MemberDefinition   = @"
 private static readonly IntPtr HWND_BROADCAST = new IntPtr(0xffff);
 private const int WM_SETTINGCHANGE = 0x1a;
 private const int SMTO_ABORTIFHUNG = 0x0002;
@@ -14983,7 +14184,7 @@ public static void PostMessage()
 	}
 	if (-not ("WinAPI.UpdateEnvironment" -as [type]))
 	{
-		Add-Type @UpdateEnvironment
+		Add-Type @Signature
 	}
 
 	# Simulate pressing F5 to refresh the desktop
@@ -14992,13 +14193,13 @@ public static void PostMessage()
 	# Refresh desktop icons, environment variables, taskbar
 	[WinAPI.UpdateEnvironment]::Refresh()
 
-	# Restart the Start menu
+	# Restart Start menu
 	Stop-Process -Name StartMenuExperienceHost -Force -ErrorAction Ignore
 	#endregion Refresh Environment
 
 	#region Other actions
 	# Turn on Controlled folder access if it was turned off
-	if ($Script:DefenderEnabled)
+	if ($Script:DefenderEnabled -and (-not $Script:DefenderMpPreferenceBroken))
 	{
 		if ($Script:ControlledFolderAccess)
 		{
@@ -15006,52 +14207,33 @@ public static void PostMessage()
 		}
 	}
 
-	if ($Script:RegionChanged)
-	{
-		# Set the original region ID
-		Set-WinHomeLocation -GeoId $Script:Region
-	}
-
-	# Apply policies found in registry to re-build database database due to gpedit.msc relies in its' own database
-	if ((Test-Path -Path "$env:TEMP\Computer.txt") -or (Test-Path -Path "$env:TEMP\User.txt"))
-	{
-		if (Test-Path -Path "$env:TEMP\Computer.txt")
-		{
-			& "$PSScriptRoot\..\bin\LGPO.exe" /t "$env:TEMP\Computer.txt"
-		}
-		if (Test-Path -Path "$env:TEMP\User.txt")
-		{
-			& "$PSScriptRoot\..\bin\LGPO.exe" /t "$env:TEMP\User.txt"
-		}
-
-		gpupdate /force
-	}
-
-	# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-	# https://github.com/PowerShell/PowerShell/issues/21070
-	Get-ChildItem -Path "$env:TEMP\Computer.txt", "$env:TEMP\User.txt" -Force -ErrorAction Ignore | Remove-Item -Recurse -Force -ErrorAction Ignore
-
-	# Kill all explorer instances but only one in case enabled to launch folder windows in a separate process
+	# Kill all explorer instances in case "launch folder windows in a separate process" enabled
 	Get-Process -Name explorer | Stop-Process -Force
 	Start-Sleep -Seconds 3
 
 	# Restoring closed folders
-	foreach ($Script:OpenedFolder in $Script:OpenedFolders)
+	if (Get-Variable -Name OpenedFolder -ErrorAction Ignore)
 	{
-		if (Test-Path -Path $Script:OpenedFolder)
+		foreach ($Script:OpenedFolder in $Script:OpenedFolders)
 		{
-			Start-Process -FilePath explorer -ArgumentList $Script:OpenedFolder
+			if (Test-Path -Path $Script:OpenedFolder)
+			{
+				Start-Process -FilePath explorer -ArgumentList $Script:OpenedFolder
+			}
 		}
 	}
 
-	# Check whether any of scheduled tasks were created. Unless open Task Scheduler
+	# Open Startup page
+	Start-Process -FilePath "ms-settings:startupapps"
+
+	# Checking whether any of scheduled tasks were created. Unless open Task Scheduler
 	if ($Script:ScheduledTasks)
 	{
-		# Find and close taskschd.msc by its' argument
+		# Find and close taskschd.msc by its argument
 		$taskschd_Process_ID = (Get-CimInstance -ClassName CIM_Process | Where-Object -FilterScript {$_.Name -eq "mmc.exe"} | Where-Object -FilterScript {
 			$_.CommandLine -match "taskschd.msc"
 		}).Handle
-		# Due to "Set-StrictMode -Version Latest" we have to check before executing
+		# We have to check before executing due to "Set-StrictMode -Version Latest"
 		if ($taskschd_Process_ID)
 		{
 			Get-Process -Id $taskschd_Process_ID | Stop-Process -Force
@@ -15064,6 +14246,16 @@ public static void PostMessage()
 
 	#region Toast notifications
 	# Persist Sophia notifications to prevent to immediately disappear from Action Center
+	# Enable notifications in Action Center
+	Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Force -ErrorAction Ignore
+	Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+
+	# Enable notifications
+	Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications -Name ToastEnabled -Force -ErrorAction Ignore
+	Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\CurrentVersion\PushNotifications -Name NoToastApplicationNotification -Force -ErrorAction Ignore
+	Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+
 	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Sophia))
 	{
 		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Sophia -Force
@@ -15079,83 +14271,22 @@ public static void PostMessage()
 	# Determines whether the app can be seen in Settings where the user can turn notifications on or off
 	New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Sophia -Name ShowInSettings -Value 0 -PropertyType DWord -Force
 
+	# Call toast notification
 	[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
 	[Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null
 
-	# Telegram group
-	# Extract the localized "Open" string from shell32.dll
 	[xml]$ToastTemplate = @"
 <toast duration="Long" scenario="reminder">
 	<visual>
 		<binding template="ToastGeneric">
-			<text>$($Localization.TelegramGroupTitle)</text>
-			<group>
-				<subgroup>
-					<text hint-style="body" hint-wrap="true">https://t.me/sophia_chat</text>
-				</subgroup>
-			</group>
+			<text>$($Localization.ThankfulToastTitle)</text>
+			<text>$($Localization.DonateToastTitle)</text>
 		</binding>
 	</visual>
 	<audio src="ms-winsoundevent:notification.default" />
 	<actions>
-		<action arguments="https://t.me/sophia_chat" content="$([WinAPI.GetStrings]::GetString(12850))" activationType="protocol"/>
-		<action arguments="dismiss" content="" activationType="system"/>
-	</actions>
-</toast>
-"@
-
-	$ToastXml = [Windows.Data.Xml.Dom.XmlDocument]::New()
-	$ToastXml.LoadXml($ToastTemplate.OuterXml)
-
-	$ToastMessage = [Windows.UI.Notifications.ToastNotification]::New($ToastXML)
-	[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("Sophia").Show($ToastMessage)
-
-	# Telegram channel
-	# Extract the localized "Open" string from shell32.dll
-	[xml]$ToastTemplate = @"
-<toast duration="Long" scenario="reminder">
-	<visual>
-		<binding template="ToastGeneric">
-			<text>$($Localization.TelegramChannelTitle)</text>
-			<group>
-				<subgroup>
-					<text hint-style="body" hint-wrap="true">https://t.me/sophianews</text>
-				</subgroup>
-			</group>
-		</binding>
-	</visual>
-	<audio src="ms-winsoundevent:notification.default" />
-	<actions>
-		<action arguments="https://t.me/sophianews" content="$([WinAPI.GetStrings]::GetString(12850))" activationType="protocol"/>
-		<action arguments="dismiss" content="" activationType="system"/>
-	</actions>
-</toast>
-"@
-
-	$ToastXml = [Windows.Data.Xml.Dom.XmlDocument]::New()
-	$ToastXml.LoadXml($ToastTemplate.OuterXml)
-
-	$ToastMessage = [Windows.UI.Notifications.ToastNotification]::New($ToastXML)
-	[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("Sophia").Show($ToastMessage)
-
-	# Discord group
-	# Extract the localized "Open" string from shell32.dll
-	[xml]$ToastTemplate = @"
-<toast duration="Long" scenario="reminder">
-	<visual>
-		<binding template="ToastGeneric">
-			<text>$($Localization.DiscordChannelTitle)</text>
-			<group>
-				<subgroup>
-					<text hint-style="body" hint-wrap="true">https://discord.gg/sSryhaEv79</text>
-				</subgroup>
-			</group>
-		</binding>
-	</visual>
-	<audio src="ms-winsoundevent:notification.default" />
-	<actions>
-		<action arguments="https://discord.gg/sSryhaEv79" content="$([WinAPI.GetStrings]::GetString(12850))" activationType="protocol"/>
-		<action arguments="dismiss" content="" activationType="system"/>
+		<action content="Ko-fi" arguments="https://ko-fi.com/Q5Q51QUJC" activationType="protocol"/>
+		<action content="Boosty" arguments="https://boosty.to/sophiascript" activationType="protocol"/>
 	</actions>
 </toast>
 "@
@@ -15167,12 +14298,32 @@ public static void PostMessage()
 	[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("Sophia").Show($ToastMessage)
 	#endregion Toast notifications
 
-	# Check for UWP apps updates
-	Write-Information -MessageData "" -InformationAction Continue
-	# Extract the localized "Please wait..." string from shell32.dll
-	Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+	# Apply policies found in registry to re-build database database because gpedit.msc relies in its own database
+	if ((Test-Path -Path "$env:TEMP\Computer.txt") -or (Test-Path -Path "$env:TEMP\User.txt"))
+	{
+		if (Test-Path -Path "$env:TEMP\Computer.txt")
+		{
+			& "$PSScriptRoot\..\Binaries\LGPO.exe" /t "$env:TEMP\Computer.txt"
+		}
+		if (Test-Path -Path "$env:TEMP\User.txt")
+		{
+			& "$PSScriptRoot\..\Binaries\LGPO.exe" /t "$env:TEMP\User.txt"
+		}
 
-	Get-CimInstance -Namespace root/CIMV2/mdm/dmmap -ClassName MDM_EnterpriseModernAppManagement_AppManagement01 | Invoke-CimMethod -MethodName UpdateScanMethod
+		gpupdate /force
+	}
+
+	# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
+	# https://github.com/PowerShell/PowerShell/issues/21070
+	Get-ChildItem -Path "$env:TEMP\Computer.txt", "$env:TEMP\User.txt" -Force -ErrorAction Ignore | Remove-Item -Force -ErrorAction Ignore
+
+	Write-Verbose -Message "https://t.me/sophia_chat" -Verbose
+	Write-Verbose -Message "https://t.me/sophianews" -Verbose
+	Write-Information -MessageData "" -InformationAction Continue
+	Write-Verbose -Message "https://discord.gg/sSryhaEv79" -Verbose
+	Write-Verbose -Message "https://ko-fi.com/Q5Q51QUJC" -Verbose
+	Write-Verbose -Message "https://boosty.to/sophiascript" -Verbose
+	Write-Information -MessageData "" -InformationAction Continue
 }
 #endregion Post Actions
 

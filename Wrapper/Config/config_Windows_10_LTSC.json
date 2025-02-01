@@ -612,6 +612,27 @@
     "Region": "UI & Personalization",
     "Control": "cmb",
     "Required": "false",
+    "Function": "TaskbarCombine",
+    "Arg": {
+      "Zero": {
+        "Tag": "Always"
+      },
+      "One": {
+        "Tag": "Full"
+      },
+      "Two": {
+        "Tag": "Never"
+      }
+    },
+    "Preset": "Zero",
+    "WindowsDefault": "Zero",
+    "LTSC2019": "true",
+    "LTSC2021": "true"
+  },
+  {
+    "Region": "UI & Personalization",
+    "Control": "cmb",
+    "Required": "false",
     "Function": "ControlPanelView",
     "Arg": {
       "Zero": {
@@ -826,7 +847,9 @@
       }
     },
     "Preset": "One",
-    "WindowsDefault": "Zero"
+    "WindowsDefault": "Zero",
+    "LTSC2019": "false",
+    "LTSC2021": "true"
   },
   {
     "Region": "UI & Personalization",
@@ -842,7 +865,9 @@
       }
     },
     "Preset": "Zero",
-    "WindowsDefault": "One"
+    "WindowsDefault": "One",
+    "LTSC2019": "false",
+    "LTSC2021": "true"
   },
   {
     "Region": "UI & Personalization",
@@ -858,7 +883,9 @@
       }
     },
     "Preset": "Zero",
-    "WindowsDefault": "Zero"
+    "WindowsDefault": "Zero",
+    "LTSC2019": "false",
+    "LTSC2021": "true"
   },
   {
     "Region": "System",
@@ -882,42 +909,6 @@
     "Region": "System",
     "Control": "cmb",
     "Required": "false",
-    "Function": "StorageSenseFrequency",
-    "Arg": {
-      "Zero": {
-        "Tag": "Month"
-      },
-      "One": {
-        "Tag": "Default"
-      }
-    },
-    "Preset": "Zero",
-    "WindowsDefault": "",
-    "LTSC2019": "true",
-    "LTSC2021": "true"
-  },
-  {
-    "Region": "System",
-    "Control": "cmb",
-    "Required": "false",
-    "Function": "StorageSenseTempFiles",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable"
-      },
-      "One": {
-        "Tag": "Disable"
-      }
-    },
-    "Preset": "Zero",
-    "WindowsDefault": "Zero",
-    "LTSC2019": "true",
-    "LTSC2021": "true"
-  },
-  {
-    "Region": "System",
-    "Control": "cmb",
-    "Required": "false",
     "Function": "Hibernation",
     "Arg": {
       "Zero": {
@@ -925,24 +916,6 @@
       },
       "One": {
         "Tag": "Enable"
-      }
-    },
-    "Preset": "Zero",
-    "WindowsDefault": "One",
-    "LTSC2019": "true",
-    "LTSC2021": "true"
-  },
-  {
-    "Region": "System",
-    "Control": "cmb",
-    "Required": "false",
-    "Function": "TempFolder",
-    "Arg": {
-      "Zero": {
-        "Tag": "SystemDrive"
-      },
-      "One": {
-        "Tag": "Default"
       }
     },
     "Preset": "Zero",
@@ -997,24 +970,6 @@
       },
       "One": {
         "Tag": "Default"
-      }
-    },
-    "Preset": "Zero",
-    "WindowsDefault": "One",
-    "LTSC2019": "true",
-    "LTSC2021": "true"
-  },
-  {
-    "Region": "System",
-    "Control": "cmb",
-    "Required": "false",
-    "Function": "MappedDrivesAppElevatedAccess",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable"
-      },
-      "One": {
-        "Tag": "Disable"
       }
     },
     "Preset": "Zero",
@@ -1116,6 +1071,60 @@
     "Region": "System",
     "Control": "cmb",
     "Required": "false",
+    "Function": "RestartNotification",
+    "Arg": {
+      "Zero": {
+        "Tag": "Show"
+      },
+      "One": {
+        "Tag": "Hide"
+      }
+    },
+    "Preset": "Zero",
+    "WindowsDefault": "One",
+    "LTSC2019": "true",
+    "LTSC2021": "true"
+  },
+  {
+    "Region": "System",
+    "Control": "cmb",
+    "Required": "false",
+    "Function": "RestartDeviceAfterUpdate",
+    "Arg": {
+      "Zero": {
+        "Tag": "Enable"
+      },
+      "One": {
+        "Tag": "Disable"
+      }
+    },
+    "Preset": "Zero",
+    "WindowsDefault": "One",
+    "LTSC2019": "false",
+    "LTSC2021": "true"
+  },
+  {
+    "Region": "System",
+    "Control": "cmb",
+    "Required": "false",
+    "Function": "ActiveHours",
+    "Arg": {
+      "Zero": {
+        "Tag": "Automatically"
+      },
+      "One": {
+        "Tag": "Manually"
+      }
+    },
+    "Preset": "Zero",
+    "WindowsDefault": "One",
+    "LTSC2019": "true",
+    "LTSC2021": "true"
+  },
+  {
+    "Region": "System",
+    "Control": "cmb",
+    "Required": "false",
     "Function": "PowerPlan",
     "Arg": {
       "Zero": {
@@ -1147,25 +1156,6 @@
     "WindowsDefault": "One",
     "LTSC2019": "true",
     "LTSC2021": "true"
-  },
-  {
-    "Region": "System",
-    "Control": "cmb",
-    "Required": "false",
-    "Function": "IPv6Component",
-    "Arg": {
-      "Zero": {
-        "Tag": "Disable"
-      },
-      "One": {
-        "Tag": "Enable"
-      },
-      "Two": {
-        "Tag": "PreferIPv4overIPv6"
-      }
-    },
-    "Preset": "One",
-    "WindowsDefault": "One"
   },
   {
     "Region": "System",
@@ -1442,60 +1432,6 @@
   },
   {
     "Region": "System",
-    "Control": "cmb",
-    "Required": "false",
-    "Function": "RestartNotification",
-    "Arg": {
-      "Zero": {
-        "Tag": "Show"
-      },
-      "One": {
-        "Tag": "Hide"
-      }
-    },
-    "Preset": "Zero",
-    "WindowsDefault": "One",
-    "LTSC2019": "true",
-    "LTSC2021": "true"
-  },
-  {
-    "Region": "System",
-    "Control": "cmb",
-    "Required": "false",
-    "Function": "RestartDeviceAfterUpdate",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable"
-      },
-      "One": {
-        "Tag": "Disable"
-      }
-    },
-    "Preset": "Zero",
-    "WindowsDefault": "One",
-    "LTSC2019": "false",
-    "LTSC2021": "true"
-  },
-  {
-    "Region": "System",
-    "Control": "cmb",
-    "Required": "false",
-    "Function": "ActiveHours",
-    "Arg": {
-      "Zero": {
-        "Tag": "Automatically"
-      },
-      "One": {
-        "Tag": "Manually"
-      }
-    },
-    "Preset": "Zero",
-    "WindowsDefault": "One",
-    "LTSC2019": "true",
-    "LTSC2021": "true"
-  },
-  {
-    "Region": "System",
     "Control": "chk",
     "Required": "false",
     "Function": "Set-Association",
@@ -1505,7 +1441,9 @@
       }
     },
     "Preset": "",
-    "WindowsDefault": ""
+    "WindowsDefault": "",
+    "LTSC2019": "true",
+    "LTSC2021": "true"
   },
   {
     "Region": "System",
@@ -1541,10 +1479,13 @@
     "Region": "System",
     "Control": "chk",
     "Required": "false",
-    "Function": "InstallVCRedist",
+    "Function": "Install-VCRedist -Redistributables",
     "Arg": {
       "Zero": {
-        "Tag": ""
+        "Tag": "2015_2022_x86"
+      },
+      "One": {
+        "Tag": "2015_2022_x64"
       }
     },
     "Preset": "",
@@ -1556,20 +1497,19 @@
     "Region": "System",
     "Control": "chk",
     "Required": "false",
-    "Function": "InstallDotNetRuntimes -Runtimes",
+    "Function": "Install-DotNetRuntimes -Runtimes",
     "Arg": {
       "Zero": {
-        "Tag": "NET6x64"
+        "Tag": "NET8x64"
       },
       "One": {
-        "Tag": "NET7x64"
-      },
-      "Two": {
-        "Tag": "NET8x64"
+        "Tag": "NET9x64"
       }
     },
     "Preset": "",
-    "WindowsDefault": ""
+    "WindowsDefault": "",
+    "LTSC2019": "true",
+    "LTSC2021": "true"
   },
   {
     "Region": "System",
@@ -1611,24 +1551,6 @@
     "Region": "System",
     "Control": "cmb",
     "Required": "false",
-    "Function": "SATADrivesRemovableMedia",
-    "Arg": {
-      "Zero": {
-        "Tag": "Disable"
-      },
-      "One": {
-        "Tag": "Default"
-      }
-    },
-    "Preset": "Zero",
-    "WindowsDefault": "",
-    "LTSC2019": "true",
-    "LTSC2021": "true"
-  },
-  {
-    "Region": "System",
-    "Control": "cmb",
-    "Required": "false",
     "Function": "RegistryBackup",
     "Arg": {
       "Zero": {
@@ -1639,7 +1561,9 @@
       }
     },
     "Preset": "Zero",
-    "WindowsDefault": "One"
+    "WindowsDefault": "One",
+    "LTSC2019": "true",
+    "LTSC2021": "true"
   },
   {
     "Region": "WSL",
@@ -1900,42 +1824,6 @@
     "Region": "Microsoft Defender & Security",
     "Control": "cmb",
     "Required": "false",
-    "Function": "AuditProcess",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable"
-      },
-      "One": {
-        "Tag": "Disable"
-      }
-    },
-    "Preset": "Zero",
-    "WindowsDefault": "One",
-    "LTSC2019": "true",
-    "LTSC2021": "true"
-  },
-  {
-    "Region": "Microsoft Defender & Security",
-    "Control": "cmb",
-    "Required": "false",
-    "Function": "CommandLineProcessAudit",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable"
-      },
-      "One": {
-        "Tag": "Disable"
-      }
-    },
-    "Preset": "Zero",
-    "WindowsDefault": "One",
-    "LTSC2019": "true",
-    "LTSC2021": "true"
-  },
-  {
-    "Region": "Microsoft Defender & Security",
-    "Control": "cmb",
-    "Required": "false",
     "Function": "EventViewerCustomView",
     "Arg": {
       "Zero": {
@@ -2056,6 +1944,24 @@
     "Preset": "Zero",
     "WindowsDefault": "One",
     "LTSC2019": "true",
+    "LTSC2021": "true"
+  },
+  {
+    "Region": "Microsoft Defender & Security",
+    "Control": "cmb",
+    "Required": "false",
+    "Function": "DNSoverHTTPS",
+    "Arg": {
+      "Zero": {
+        "Tag": "Enable"
+      },
+      "One": {
+        "Tag": "Disable"
+      }
+    },
+    "Preset": "Zero",
+    "WindowsDefault": "One",
+    "LTSC2019": "false",
     "LTSC2021": "true"
   },
   {

@@ -244,6 +244,20 @@
     }
   },
   {
+    "Region": "Privacy & Telemetry",
+    "Function": "StartAccountNotifications",
+    "Arg": {
+      "Zero": {
+        "Tag": "Hide",
+        "ToolTip": "Do not show Microsoft account-related notifications on Start Menu in the Start menu."
+      },
+      "One": {
+        "Tag": "Show",
+        "ToolTip": "Show Microsoft account-related notifications on Start Menu in the Start menu (default value)."
+      }
+    }
+  },
+  {
     "Region": "UI & Personalization",
     "Function": "ThisPC",
     "Arg": {
@@ -333,11 +347,11 @@
     "Arg": {
       "Zero": {
         "Tag": "Expanded",
-        "ToolTip": "Expand the File Explorer ribbon."
+        "ToolTip": "Expand File Explorer ribbon."
       },
       "One": {
         "Tag": "Minimized",
-        "ToolTip": "Minimize the File Explorer ribbon (default value)."
+        "ToolTip": "Minimize File Explorer ribbon (default value)."
       }
     }
   },
@@ -487,20 +501,6 @@
   },
   {
     "Region": "UI & Personalization",
-    "Function": "CopilotButton",
-    "Arg": {
-      "Zero": {
-        "Tag": "Hide",
-        "ToolTip": "Hide Copilot button on the taskbar."
-      },
-      "One": {
-        "Tag": "Show",
-        "ToolTip": "Show Copilot button on the taskbar (default value)."
-      }
-    }
-  },
-  {
-    "Region": "UI & Personalization",
     "Function": "TaskViewButton",
     "Arg": {
       "Zero": {
@@ -599,20 +599,34 @@
   },
   {
     "Region": "UI & Personalization",
+    "Function": "SecondsInSystemClock",
+    "Arg": {
+      "Zero": {
+        "Tag": "Show",
+        "ToolTip": "Show seconds on the taskbar clock."
+      },
+      "One": {
+        "Tag": "Hide",
+        "ToolTip": "Hide seconds on the taskbar clock (default value)."
+      }
+    }
+  },
+  {
+    "Region": "UI & Personalization",
     "Function": "UnpinTaskbarShortcuts -Shortcuts",
-    "ToolTip": "Unpin the \"Microsoft Edge\", \"Microsoft Store\", or \"Mail\" shortcuts from the taskbar",
+    "ToolTip": "Unpin Microsoft Edge, Microsoft Store, or Mail shortcuts from the taskbar.",
     "Arg": {
       "Zero": {
         "Tag": "Edge",
-        "ToolTip": "Unpin the \"Microsoft Edge\" shortcut from the taskbar."
+        "ToolTip": "Unpin Microsoft Edge shortcut from the taskbar."
       },
       "One": {
         "Tag": "Store",
-        "ToolTip": "Unpin the \"Microsoft Store\" shortcut from the taskbar."
+        "ToolTip": "Unpin Microsoft Store shortcut from the taskbar."
       },
       "Two": {
         "Tag": "Mail",
-        "ToolTip": "Unpin the \"Mail\" shortcut from the taskbar."
+        "ToolTip": "Unpin Mail shortcut from the taskbar."
       }
     }
   },
@@ -874,34 +888,6 @@
   },
   {
     "Region": "System",
-    "Function": "StorageSenseFrequency",
-    "Arg": {
-      "Zero": {
-        "Tag": "Month",
-        "ToolTip": "Run Storage Sense every month."
-      },
-      "One": {
-        "Tag": "Default",
-        "ToolTip": "Run Storage Sense during low free disk space (default value)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "StorageSenseTempFiles",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable",
-        "ToolTip": "Delete temporary files that apps aren't using (default value)."
-      },
-      "One": {
-        "Tag": "Disable",
-        "ToolTip": "Do not delete temporary files that apps aren't using."
-      }
-    }
-  },
-  {
-    "Region": "System",
     "Function": "Hibernation",
     "Arg": {
       "Zero": {
@@ -911,20 +897,6 @@
       "One": {
         "Tag": "Enable",
         "ToolTip": "Enable hibernate (default value)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "TempFolder",
-    "Arg": {
-      "Zero": {
-        "Tag": "SystemDrive",
-        "ToolTip": "Change the %TEMP% environment variable path to %SystemDrive%\\Temp."
-      },
-      "One": {
-        "Tag": "Default",
-        "ToolTip": "Change %TEMP% environment variable path to %LOCALAPPDATA%\\Temp (default value)."
       }
     }
   },
@@ -952,7 +924,7 @@
       },
       "One": {
         "Tag": "Disable",
-        "ToolTip": "Do not Stop error code when BSoD occurs (default value)."
+        "ToolTip": "Do not display stop error code when BSoD occurs (default value)."
       }
     }
   },
@@ -967,20 +939,6 @@
       "One": {
         "Tag": "Default",
         "ToolTip": "Choose when to be notified about changes to your computer: notify me only when apps try to make changes to my computer (default value)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "MappedDrivesAppElevatedAccess",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable",
-        "ToolTip": "Turn on access to mapped drives from app running with elevated permissions with Admin Approval Mode enabled."
-      },
-      "One": {
-        "Tag": "Disable",
-        "ToolTip": "Turn off access to mapped drives from app running with elevated permissions with Admin Approval Mode enabled (default value)."
       }
     }
   },
@@ -1022,7 +980,7 @@
       },
       "One": {
         "Tag": "Enable",
-        "ToolTip": "Enable the Windows features using the pop-up dialog box (default value)."
+        "ToolTip": "Enable the Windows features using the pop-up dialog box."
       }
     }
   },
@@ -1036,7 +994,7 @@
       },
       "One": {
         "Tag": "Install",
-        "ToolTip": "Install optional features using the pop-up dialog box (default value)."
+        "ToolTip": "Install optional features using the pop-up dialog box."
       }
     }
   },
@@ -1051,6 +1009,62 @@
       "One": {
         "Tag": "Disable",
         "ToolTip": "Do not receive updates for other Microsoft products when you update Windows (default value)."
+      }
+    }
+  },
+  {
+    "Region": "System",
+    "Function": "RestartNotification",
+    "Arg": {
+      "Zero": {
+        "Tag": "Show",
+        "ToolTip": "Show a notification when your PC requires a restart to finish updating."
+      },
+      "One": {
+        "Tag": "Hide",
+        "ToolTip": "Do not show a notification when your PC requires a restart to finish updating (default value)."
+      }
+    }
+  },
+  {
+    "Region": "System",
+    "Function": "RestartDeviceAfterUpdate",
+    "Arg": {
+      "Zero": {
+        "Tag": "Enable",
+        "ToolTip": "Restart this device as soon as possible when a restart is required to install an update."
+      },
+      "One": {
+        "Tag": "Disable",
+        "ToolTip": "Do not restart this device as soon as possible when a restart is required to install an update (default value)."
+      }
+    }
+  },
+  {
+    "Region": "System",
+    "Function": "ActiveHours",
+    "Arg": {
+      "Zero": {
+        "Tag": "Automatically",
+        "ToolTip": "Automatically adjust active hours for me based on daily usage."
+      },
+      "One": {
+        "Tag": "Manually",
+        "ToolTip": "Manually adjust active hours for me based on daily usage (default value)."
+      }
+    }
+  },
+  {
+    "Region": "System",
+    "Function": "WindowsLatestUpdate",
+    "Arg": {
+      "Zero": {
+        "Tag": "Disable",
+        "ToolTip": "Do not get Windows updates as soon as they're available for your device (default value)."
+      },
+      "One": {
+        "Tag": "Enable",
+        "ToolTip": "Get Windows updates as soon as they're available for your device."
       }
     }
   },
@@ -1084,24 +1098,6 @@
   },
   {
     "Region": "System",
-    "Function": "IPv6Component",
-    "Arg": {
-      "Zero": {
-        "Tag": "Disable",
-        "ToolTip": "Disable the Internet Protocol Version 6 (TCP/IPv6) component for all network connections. Before invoking the function, a check will be run whether your ISP supports the IPv6 protocol using https://ipify.org."
-      },
-      "One": {
-        "Tag": "Enable",
-        "ToolTip": "Enable the Internet Protocol Version 6 (TCP/IPv6) component for all network connections (default value). Before invoking the function, a check will be run whether your ISP supports the IPv6 protocol using https://ipify.org."
-      },
-      "Two": {
-        "Tag": "PreferIPv4overIPv6",
-        "ToolTip": "Enable the Internet Protocol Version 6 (TCP/IPv6) component for all network connections. Prefer IPv4 over IPv6. Before invoking the function, a check will be run whether your ISP supports the IPv6 protocol using https://ipify.org."
-      }
-    }
-  },
-  {
-    "Region": "System",
     "Function": "InputMethod",
     "Arg": {
       "Zero": {
@@ -1120,15 +1116,15 @@
     "Arg": {
       "Zero": {
         "Tag": "Root",
-        "ToolTip": "Change user folders location to the root of any drive using the interactive menu. User files or folders won't me moved to a new location. Move them manually. They're located in the %USERPROFILE% folder by default."
+        "ToolTip": "Change user folders location to the root of any drive using the interactive menu. User files or folders won't be moved to a new location. Move them manually. They're located in the %USERPROFILE% folder by default."
       },
       "One": {
         "Tag": "Custom",
-        "ToolTip": "Select folders for user folders location manually using a folder browser dialog. User files or folders won't me moved to a new location. Move them manually. They're located in the %USERPROFILE% folder by default."
+        "ToolTip": "Select folders for user folders location manually using a folder browser dialog. User files or folders won't be moved to a new location. Move them manually. They're located in the %USERPROFILE% folder by default."
       },
       "Two": {
         "Tag": "Default",
-        "ToolTip": "Change user folders location to the default values. User files or folders won't me moved to a new location. Move them manually. They're located in the %USERPROFILE% folder by default (default value)."
+        "ToolTip": "Change user folders location to the default values. User files or folders won't be moved to a new location. Move them manually. They're located in the %USERPROFILE% folder by default (default value)."
       }
     }
   },
@@ -1316,62 +1312,6 @@
   },
   {
     "Region": "System",
-    "Function": "RestartNotification",
-    "Arg": {
-      "Zero": {
-        "Tag": "Show",
-        "ToolTip": "Show a notification when your PC requires a restart to finish updating."
-      },
-      "One": {
-        "Tag": "Hide",
-        "ToolTip": "Do not show a notification when your PC requires a restart to finish updating (default value)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "RestartDeviceAfterUpdate",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable",
-        "ToolTip": "Restart this device as soon as possible when a restart is required to install an update."
-      },
-      "One": {
-        "Tag": "Disable",
-        "ToolTip": "Do not restart this device as soon as possible when a restart is required to install an update (default value)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "ActiveHours",
-    "Arg": {
-      "Zero": {
-        "Tag": "Automatically",
-        "ToolTip": "Automatically adjust active hours for me based on daily usage."
-      },
-      "One": {
-        "Tag": "Manually",
-        "ToolTip": "Manually adjust active hours for me based on daily usage (default value)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "WindowsLatestUpdate",
-    "Arg": {
-      "Zero": {
-        "Tag": "Disable",
-        "ToolTip": "Do not get Windows updates as soon as they're available for your device (default value)."
-      },
-      "One": {
-        "Tag": "Enable",
-        "ToolTip": "Get Windows updates as soon as they're available for your device."
-      }
-    }
-  },
-  {
-    "Region": "System",
     "Function": "Set-Association",
     "Arg": {
       "Zero": {
@@ -1382,7 +1322,7 @@
         "Tag": "ProgramPath",
         "ToolTip": "Path to executable file."
       },
-      "Two":  {
+      "Two": {
         "Tag": "Extension",
         "ToolTip": "Extension."
       },
@@ -1424,30 +1364,30 @@
   },
   {
     "Region": "System",
-    "Function": "InstallVCRedist",
+    "Function": "Install-VCRedist -Redistributables",
     "Arg": {
       "Zero": {
-        "Tag": "",
-        "ToolTip": "Install the latest Microsoft Visual C++ Redistributable Packages 2015–2022 (x86/x64)."
+        "Tag": "2015_2022_x86",
+        "ToolTip": "Install the latest Microsoft Visual C++ Redistributable Packages 2015–2022 x86."
+      },
+      "One": {
+        "Tag": "2015_2022_x64",
+        "ToolTip": "Install the latest Microsoft Visual C++ Redistributable Packages 2015–2022 x64."
       }
     }
   },
   {
     "Region": "System",
-    "Function": "InstallDotNetRuntimes -Runtimes",
-    "ToolTip": "Install the latest .NET Desktop Runtime 6, 7, 8 (x86/x64).",
+    "Function": "Install-DotNetRuntimes -Runtimes",
+    "ToolTip": "Install the latest .NET Desktop Runtime 8, 9 x64.",
     "Arg": {
       "Zero": {
-        "Tag": "NET6x64",
-        "ToolTip": ".NET Desktop Runtime 6 x64."
-      },
-      "One": {
-        "Tag": "NET7x64",
-        "ToolTip": ".NET Desktop Runtime 7 x64."
-      },
-      "Two": {
         "Tag": "NET8x64",
         "ToolTip": ".NET Desktop Runtime 8 x64."
+      },
+      "One": {
+        "Tag": "NET9x64",
+        "ToolTip": ".NET Desktop Runtime 9 x64."
       }
     }
   },
@@ -1476,20 +1416,6 @@
       "One": {
         "Tag": "Disable",
         "ToolTip": "Do not prevent desktop shortcut creation upon Microsoft Edge update (default value)."
-      }
-    }
-  },
-  {
-    "Region": "System",
-    "Function": "SATADrivesRemovableMedia",
-    "Arg": {
-      "Zero": {
-        "Tag": "Disable",
-        "ToolTip": "Prevent all internal SATA drives from showing up as removable media in the taskbar notification area."
-      },
-      "One": {
-        "Tag": "Default",
-        "ToolTip": "Show up all internal SATA drives as removeable media in the taskbar notification area (default value)."
       }
     }
   },
@@ -1548,7 +1474,7 @@
   {
     "Region": "Start menu",
     "Function": "PinToStart -Tiles",
-    "ToolTip": "Pin to Start the following shortcuts: Control Panel, Devices and Printers, PowerShell",
+    "ToolTip": "Pin to Start the following shortcuts: Control Panel, Devices and Printers, PowerShell.",
     "Arg": {
       "Zero": {
         "Tag": "ControlPanel",
@@ -1591,16 +1517,6 @@
       "Zero": {
         "Tag": "",
         "ToolTip": "Uninstall UWP apps using the pop-up dialog box. If the \"For all users\" is checked apps packages will not be installed for new users. The \"ForAllUsers\" argument sets a checkbox to unistall packages for all users."
-      }
-    }
-  },
-  {
-    "Region": "UWP apps",
-    "Function": "RestoreUWPApps",
-    "Arg": {
-      "Zero": {
-        "Tag": "",
-        "ToolTip": "Restore the default UWP apps using the pop-up dialog box. UWP apps can be restored only if they were uninstalled only for the current user."
       }
     }
   },
@@ -1704,7 +1620,7 @@
     "Arg": {
       "Zero": {
         "Tag": "Register",
-        "ToolTip": "Create the \"Windows Cleanup\" scheduled task for cleaning up Windows unused files and updates. A native interactive toast notification pops up every 30 days. You have to enable Windows Script Host in order to make the function work."
+        "ToolTip": "Create \"Windows Cleanup\" (main task) and \"Windows Cleanup Notification\" (task to generate a pop-up notification) tasks to clean up unused files and Windows updates in the Task Scheduler in the Sophia folder. A native notification prompting you to run the task will pop up before the cleanup begins. The task runs every 30 days. Windows Script Host must be enabled for the task to run."
       },
       "One": {
         "Tag": "Delete",
@@ -1718,7 +1634,7 @@
     "Arg": {
       "Zero": {
         "Tag": "Register",
-        "ToolTip": "Create the \"SoftwareDistribution\" scheduled task for cleaning up the %SystemRoot%\\SoftwareDistribution\\Download folder. The task will wait until the Windows Updates service finishes running. The task runs every 90 days. You have to enable Windows Script Host in order to make the function work"
+        "ToolTip": "Create a \"SoftwareDistribution\" task to clean up the %SystemRoot%\\SoftwareDistribution\\Download folder where the installation files for all Windows updates are downloaded, in the Sophia folder in the  Task Scheduler. The task will wait until the Windows Update service has finished running. The task runs every 90 days. Windows Script Host must be enabled for the task to run."
       },
       "One": {
         "Tag": "Delete",
@@ -1732,7 +1648,7 @@
     "Arg": {
       "Zero": {
         "Tag": "Register",
-        "ToolTip": "Create the \"Temp\" scheduled task for cleaning up the %TEMP% folder. Only files older than one day will be deleted. The task runs every 60 days. You have to enable Windows Script Host in order to make the function work"
+        "ToolTip": "Create a \"Temp\" task in the Task Scheduler to clean up the %TEMP% folder. Only files older than one day will be deleted. The task runs every 60 days. Windows Script Host must be enabled for the task to run."
       },
       "One": {
         "Tag": "Delete",
@@ -1804,39 +1720,11 @@
   },
   {
     "Region": "Microsoft Defender & Security",
-    "Function": "AuditProcess",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable",
-        "ToolTip": "Enable events auditing generated when a process is created (starts)."
-      },
-      "One": {
-        "Tag": "Disable",
-        "ToolTip": "Disable events auditing generated when a process is created (starts) (default value)."
-      }
-    }
-  },
-  {
-    "Region": "Microsoft Defender & Security",
-    "Function": "CommandLineProcessAudit",
-    "Arg": {
-      "Zero": {
-        "Tag": "Enable",
-        "ToolTip": "Include command line in process creation events. In order this feature to work events auditing (ProcessAudit -Enable) will be enabled."
-      },
-      "One": {
-        "Tag": "Disable",
-        "ToolTip": "Do not include command line in process creation events (default value)."
-      }
-    }
-  },
-  {
-    "Region": "Microsoft Defender & Security",
     "Function": "EventViewerCustomView",
     "Arg": {
       "Zero": {
         "Tag": "Enable",
-        "ToolTip": "Create the \"Process Creation\" сustom view in the Event Viewer to log executed processes and their arguments. In order this feature to work events auditing (AuditProcess -Enable) and command line (CommandLineProcessAudit -Enable) in process creation events will be enabled."
+        "ToolTip": "Create the \"Process Creation\" сustom view in the Event Viewer to log executed processes and their arguments."
       },
       "One": {
         "Tag": "Disable",
@@ -1920,11 +1808,25 @@
     "Arg": {
       "Zero": {
         "Tag": "Enable",
-        "ToolTip": "Enable Windows Sandbox."
+        "ToolTip": "Enable Windows Sandbox. Applicable only to Professional, Enterprise and Education editions."
       },
       "One": {
         "Tag": "Disable",
-        "ToolTip": "Disable Windows Sandbox (default value)."
+        "ToolTip": "Disable Windows Sandbox (default value). Applicable only to Professional, Enterprise and Education editions."
+      }
+    }
+  },
+  {
+    "Region": "Microsoft Defender & Security",
+    "Function": "DNSoverHTTPS",
+    "Arg": {
+      "Zero": {
+        "Tag": "Enable",
+        "ToolTip": "Enable DNS-over-HTTPS for IPv4. The valid IPv4 addresses: 1.0.0.1, 1.1.1.1, 149.112.112.112, 8.8.4.4, 8.8.8.8, 9.9.9.9."
+      },
+      "One": {
+        "Tag": "Disable",
+        "ToolTip": "Disable DNS-over-HTTPS for IPv4 (default value)."
       }
     }
   },
@@ -2130,7 +2032,7 @@
     "Arg": {
       "Zero": {
         "Tag": "",
-        "ToolTip": "Display all policy registry keys (even manually created ones) in the Local Group Policy Editor snap-in (gpedit.msc). This can take up to 30 minutes, depending on on the number of policies created in the registry and your system resources."
+        "ToolTip": "Display all policy registry keys (even manually created ones) in the Local Group Policy Editor snap-in (gpedit.msc). This can take up to 30 minutes, depending on the number of policies created in the registry and your system resources."
       }
     }
   }
